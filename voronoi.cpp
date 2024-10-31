@@ -143,17 +143,17 @@ void recursiveVoronoi(int L, int R) {
                 swap(bisector2, bisector3);
                 swap(points[L], points[L+1]);
             }
-            if(AB2 + BC2 <= CA2 || AB2 + CA2 <= BC2 || BC2 + CA2 <= AB2) { // ª½¨¤ or ¶w¨¤
-                if (calculateMidPoint(points[L], points[L+1]).x > intersection.x) {
+            if (calculateMidPoint(points[L], points[L+1]).x > intersection.x) {
                     bisector1.first = intersection;
-                } else {
-                    bisector1.second = intersection;
-                }
-                if (calculateMidPoint(points[L+1], points[L+2]).x > intersection.x) {
-                    bisector2.first = intersection;
-                } else {
-                    bisector2.second = intersection;
-                }
+            } else {
+                bisector1.second = intersection;
+            }
+            if (calculateMidPoint(points[L+1], points[L+2]).x > intersection.x) {
+                bisector2.first = intersection;
+            } else {
+                bisector2.second = intersection;
+            }
+            if(AB2 + BC2 <= CA2 || AB2 + CA2 <= BC2 || BC2 + CA2 <= AB2) { // ª½¨¤ or ¶w¨¤
                 if (calculateMidPoint(points[L], points[L+2]).x > intersection.x) {
                     bisector3.second = intersection;
                 } else {
@@ -161,16 +161,6 @@ void recursiveVoronoi(int L, int R) {
                 }
             }
             else { // ¾U¨¤
-                if (calculateMidPoint(points[L], points[L+1]).x > intersection.x) {
-                    bisector1.first = intersection;
-                } else {
-                    bisector1.second = intersection;
-                }
-                if (calculateMidPoint(points[L+1], points[L+2]).x > intersection.x) {
-                    bisector2.first = intersection;
-                } else {
-                    bisector2.second = intersection;
-                }
                 if (calculateMidPoint(points[L], points[L+2]).x > intersection.x) {
                     bisector3.first = intersection;
                 } else {
