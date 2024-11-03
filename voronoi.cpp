@@ -99,10 +99,6 @@ Point calculateIntersection(double slope1, Point mid1, double slope2, Point mid2
     return {x, y};
 }
 
-double distance(Point A, Point B) {
-    return  (A.x - B.x) * (A.x - B.x) + (A.y - B.y) * (A.y - B.y);
-}
-
 void recursiveVoronoi(int L, int R) {
     if (R - L == 2) {
         pair<Point, Point> t = calculatePerpendicularBisector(points[L], points[L + 1]);
