@@ -253,7 +253,6 @@ vector<Edge> trangle(const Point A, const Point B, const Point C, Point &t) {
         }else{
             bisector1.second = t;
         }
-        cout << t.x << ' ' << t.y << endl;
         return vector<Edge>{
             Edge{bisector1.first, bisector1.second, A, B}
             //Edge{bisector2.first, bisector2.second, b, c},
@@ -261,6 +260,37 @@ vector<Edge> trangle(const Point A, const Point B, const Point C, Point &t) {
         };
     }
     return vector<Edge>{};
+}
+
+Point IntersectionPoint(const Edge& A, const Edge& B) {
+    double slope1 = (A.end.y - A.start.y) / (A.end.x - A.start.x);
+    double slope2 = (B.end.y - B.start.y) / (B.end.x - B.start.x);
+
+    double x = ((slope1 * A.start.x - A.start.y) - (slope2 * B.start.x - B.start.y)) / (slope1 - slope2);
+    double y = slope1 * (x - A.start.x) + A.start.y;
+
+    return Point{x, y};
+}
+
+pair<Point, Point> HyperPlane(const vector<Point>& leftConvexHull, const vector<Point>& rightConvexHull) {
+    Point bestPointLeft, bestPointRight;
+    double maxDistance = -numeric_limits<double>::infinity();
+
+    for (const auto& leftPoint : leftConvexHull) {
+        for (const auto& rightPoint : rightConvexHull) {
+            double distance = std::sqrt(
+                pow(rightPoint.x - leftPoint.x, 2) +
+                pow(rightPoint.y - leftPoint.y, 2)
+            );
+            if (distance > maxDistance) {
+                maxDistance = distance;
+                bestPointLeft = leftPoint;
+                bestPointRight = rightPoint;
+            }
+        }
+    }
+
+    return {bestPointLeft, bestPointRight};
 }
 
 optional<Point> doLinesIntersect(const Edge& A, const Edge& B) {
@@ -335,6 +365,10 @@ vector<Edge> constructConvexHull(vector<Edge>& voronoiEdges, bool Left) {
             }
         }
     }
+
+    /*sort(Convexhull.begin(), Convexhull.end(), [](const Edge& a, const Edge& b) {
+        return (a.B.y > b.B.y) || (a.B.y == b.B.y && a.B.x > b.B.x);
+    });*/
     return Convexhull;
 }
 
@@ -354,8 +388,11 @@ vector<Point> ConvexHull_Point(const vector<Edge>& voronoiEdges) {
     return result;
 }
 
+double calculateslope(Edge E) {
+    return (E.start.y - E.end.y)/(E.start.x - E.end.x);
+}
+
 vector<Edge> recursiveVoronoi(int L, int R) {
-    cout << L << ' ' << R << endl;
     vector<Edge> voronoi;
     vector<Point> Convex_Hull = convexHull(&points[L], &points[R - 1]), Points;
     if(Convex_Hull.size() == R - L - 1) {
@@ -370,17 +407,14 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                 }
             }
         }
-
         for(int i = 0; i < len; i++) {
             Point A = Convex_Hull[i], B = Convex_Hull[(i + 1) % len], t;
             vector<Edge> edge = trangle(A, B, p, t);
-            //cout << edge[0].start.x << ' ' << edge[0].start.y << ' ' << edge[0].end.x << ' ' << edge[0].end.y << endl;
             Points.push_back(t);
             voronoi.insert(voronoi.end(), edge.begin(), edge.end());
         }
         for(int i = 0; i < Points.size(); i++) {
             pair<Point, Point> temp = adjustPointToBoundary(Points[i], Points[(i+1)%int(Points.size())]);
-            //cout << temp.first.x << ' ' << temp.first.y << ' ' << temp.second.x << ' ' << temp.second.y  << endl;
             voronoi.push_back({temp.first, temp.second , p, Convex_Hull[i]});
         }
 
@@ -426,7 +460,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                 swap(points[L], points[L+1]);
             }
             if (calculateMidPoint(points[L], points[L+1]).x > intersection.x) {
-                    bisector1.first = intersection;
+                bisector1.first = intersection;
             } else {
                 bisector1.second = intersection;
             }
@@ -449,17 +483,14 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                     bisector3.second = intersection;
                 }
             }
-            if(AB2 >= BC2 && AB2 >= CA2) {
-                swap(points[L+1], points[L+2]);
-            }
-            else if(BC2 >= AB2 && BC2 >= CA2) {
-                swap(points[L], points[L+2]);
-            }
         }
         else {
+            sort(points.begin()+L, points.begin()+L+3, [](Point a, Point b) {
+                    return a.y > b.y;
+                 });
             return vector<Edge>{
-                Edge{recursiveVoronoi(L, L+2)[0].start, recursiveVoronoi(L, L+2)[0].end, points[L], points[L+1]},
-                Edge{recursiveVoronoi(L+1, R)[0].start, recursiveVoronoi(L+1, R)[0].end, points[L+1], points[L+2]}
+                Edge{recursiveVoronoi(L, L+2)[0].start, recursiveVoronoi(L, L+2)[0].end, points[L+1], points[L]},
+                Edge{recursiveVoronoi(L+1, R)[0].start, recursiveVoronoi(L+1, R)[0].end, points[L+2], points[L+1]}
             };
         }
 
@@ -467,13 +498,13 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         Swap(bisector2.first, bisector2.second);
         Swap(bisector3.first, bisector3.second);
         Point A = points[L], B = points[L+1], C = points[L+2];
-        Swap(B, C);
+        /*Swap(B, C);
         Swap(A, C);
-        Swap(A, B);
+        Swap(A, B);*/
         return vector<Edge>{
-            Edge{bisector1.first, bisector1.second, A, B},
-            Edge{bisector2.first, bisector2.second, B, C},
-            Edge{bisector3.first, bisector3.second, A, C}
+            Edge{bisector1.first, bisector1.second, (A.y < B.y ? A:B), (A.y > B.y ? A:B)},
+            Edge{bisector2.first, bisector2.second, (B.y < C.y ? B:C), (B.y > C.y ? B:C)},
+            Edge{bisector3.first, bisector3.second, (A.y < C.y ? A:C), (A.y > C.y ? A:C)}
         };
     }
     int mid = (L + R) / 2, l_index = 0, r_index = 0;
@@ -485,133 +516,114 @@ vector<Edge> recursiveVoronoi(int L, int R) {
 
     vector<Point> RightConvexhull = ConvexHull_Point(RightConvexhull_Edge);
     vector<Point> LeftConvexhull = ConvexHull_Point(LeftConvexhull_Edge);
+    cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
+    pair<Point, Point> hyperplane = HyperPlane(RightConvexhull, LeftConvexhull);
 
     voronoi.insert(voronoi.end(), RightEdge.begin(), RightEdge.end());
     voronoi.insert(voronoi.end(), LeftEdge.begin(), LeftEdge.end());
 
-    //cout << RightConvexhull_Edge[0].B.x << ' ' << RightConvexhull_Edge[0].B.y << endl;
-    //cout << LeftConvexhull_Edge[0].B.x << ' ' << LeftConvexhull_Edge[0].B.y << endl;
-    //cout << RightConvexhull_Edge.size() << ' ' << LeftConvexhull_Edge.size() << endl;
-
+    Edge last_point;
+    last_point.start.x = -1;
+    cout << hyperplane.first.x << ' ' << hyperplane.first.y << endl;
+    cout << hyperplane.second.x << ' ' << hyperplane.second.y << endl;
     while(l_index < LeftConvexhull_Edge.size() && r_index < RightConvexhull_Edge.size()) {
+        cout << l_index << ' ' << r_index << endl;
+        //if(l_index + r_index == 0) {
+            //cout << LeftConvexhull_Edge[l_index].A.x << ' ' << LeftConvexhull_Edge[l_index].A.y << endl;
+            //cout << RightConvexhull_Edge[r_index].B.x << ' ' << RightConvexhull_Edge[r_index].B.y << endl;
+        //}
         pair<Point, Point> t = calculatePerpendicularBisector(LeftConvexhull_Edge[l_index].B, RightConvexhull_Edge[r_index].B);
         Swap(t.first, t.second);
-        Point A = LeftConvexhull_Edge[l_index].B, B = RightConvexhull_Edge[r_index].B;
-        Swap(A, B);
-        Edge edge = Edge{t.first, t.second, A, B};
-        if(LeftConvexhull_Edge[l_index].B.x == RightConvexhull_Edge[r_index].B.x
-            || LeftConvexhull_Edge[l_index].B.y == RightConvexhull_Edge[r_index].B.y) {
+        Edge edge = {t.first, t.second};
+        //cout << edge.start.x << ' ' << edge.start.y << endl;
+        //if(edge.start.x != -1) edge.end = last_point.start;
+        Point R = IntersectionPoint(RightConvexhull_Edge[r_index], edge);
+        Point L = IntersectionPoint(LeftConvexhull_Edge[l_index], edge);
+        bool b = 1;
+        //cout << R.x << ' ' << R.y << endl;
+        //cout << L.x << ' ' << L.y << endl;
+        if(L.y < 0 || L.x < 0 || L.y > 600 || L.x > 600) { // 一個交點在外
+            b = 0;
             voronoi.push_back(LeftConvexhull_Edge[l_index]);
-            voronoi.push_back(RightConvexhull_Edge[r_index]);
-            voronoi.push_back(edge);
-            l_index++;
-            r_index++;
-            continue;
-        }
-        auto L = doLinesIntersect(edge, LeftConvexhull_Edge[l_index]);
-        auto R = doLinesIntersect(edge, RightConvexhull_Edge[r_index]);
-        Point M = calculateMidPoint(LeftConvexhull_Edge[l_index].B, RightConvexhull_Edge[r_index].B);
-        if(pow(M.x - L -> x, 2) + pow(M.y - L -> y, 2) <= pow(M.x - R -> x, 2) + pow(M.y - R -> y, 2)) {
-            edge.start = *L;
-            double m = (LeftConvexhull_Edge[l_index].start.y - LeftConvexhull_Edge[l_index].end.y)/(LeftConvexhull_Edge[l_index].start.x - LeftConvexhull_Edge[l_index].end.x);
-            if(m > 0)
-                LeftConvexhull_Edge[l_index].start = *L;
-            else if(m < 0)
-                LeftConvexhull_Edge[l_index].end = *L;
-
-            voronoi.push_back(LeftConvexhull_Edge[l_index]);
-            voronoi.push_back(edge);
             l_index++;
         }
-        else {
-            edge.start = *R;
-            double m = (RightConvexhull_Edge[r_index].start.y - RightConvexhull_Edge[r_index].end.y)/(RightConvexhull_Edge[r_index].start.x - RightConvexhull_Edge[r_index].end.x);
-            if(m > 0)
-                RightConvexhull_Edge[r_index].end = *R;
-            else if(m < 0)
-                RightConvexhull_Edge[r_index].start = *R;
+        if(R.y < 0 || R.x < 0 || R.y > 600 || R.x > 600) { // 一個交點在外
+            b = 0;
             voronoi.push_back(RightConvexhull_Edge[r_index]);
-            voronoi.push_back(edge);
             r_index++;
         }
-        /*if(l_index+1 == LeftConvexhull_Edge.size() && r_index+1 == RightConvexhull_Edge.size()) {
-            if(LeftConvexhull_Edge[l_index].A.y > RightConvexhull_Edge[r_index].A.y) {
-                l_index++;
+        if(!b) continue;
+        if(R.y > L.y) {
+            if(R.y >= 0 && R.x >= 0 && R.y <= 600 && R.x <= 600) {
+                edge.start = R;
+                if(RightConvexhull_Edge[r_index].end.x > RightConvexhull_Edge[r_index].start.x) {
+                    RightConvexhull_Edge[r_index].end = R;
+                }
+                else {
+                    RightConvexhull_Edge[r_index].start = R;
+                }
             }
-            else {
-                r_index++;
-            }
+            voronoi.push_back(RightConvexhull_Edge[r_index]);
+            r_index++;
         }
-        else if(l_index+1 == LeftConvexhull_Edge.size()) {
-            if(LeftConvexhull_Edge[l_index].A.y > RightConvexhull_Edge[r_index+1].B.y) {
-                l_index++;
+        else if(L.y > R.y) {
+            if(L.y >= 0 && L.x >= 0 && L.y <= 600 && L.x <= 600) {
+                edge.start = L;
+                if(LeftConvexhull_Edge[l_index].start.x < LeftConvexhull_Edge[l_index].end.x) {
+                    LeftConvexhull_Edge[l_index].start = L;
+                }
+                else {
+                    LeftConvexhull_Edge[l_index].end = L;
+                }
             }
-            else {
-                r_index++;
-            }
+            voronoi.push_back(LeftConvexhull_Edge[l_index]);
+            l_index++;
         }
-        else if(r_index+1 == RightConvexhull_Edge.size()){
-            if(LeftConvexhull_Edge[l_index+1].B.y > RightConvexhull_Edge[r_index].A.y) {
-                l_index++;
-            }
-            else {
-                r_index++;
-            }
+        else{ // 兩個交點都在外
+            voronoi.push_back(LeftConvexhull_Edge[l_index]);
+            voronoi.push_back(RightConvexhull_Edge[r_index]);
+            r_index++;
+            l_index++;
         }
-        else {
-            if(LeftConvexhull_Edge[l_index+1].B.y > RightConvexhull_Edge[r_index+1].B.y) {
-                l_index++;
-            }
-            else {
-                r_index++;
-            }
-        }*/
-    }
-    //cout << l_index << ' ' << r_index << endl;
-    while(l_index < LeftConvexhull_Edge.size()) {
-        pair<Point, Point> t = calculatePerpendicularBisector(LeftConvexhull_Edge[l_index].B, RightConvexhull_Edge[r_index-1].A);
-        Swap(t.first, t.second);
-        t.second = prev(voronoi.end()) -> start;
-        Point A = LeftConvexhull_Edge[l_index].B, B = RightConvexhull_Edge[r_index-1].A;
-        Swap(A, B);
-        Edge edge = Edge{t.first, t.second, A, B};
-        auto L = doLinesIntersect(edge, LeftConvexhull_Edge[l_index]);
-        Point M = calculateMidPoint(LeftConvexhull_Edge[l_index].B, RightConvexhull_Edge[r_index-1].A);
-        edge.start = *L;
-        double m = (LeftConvexhull_Edge[l_index].start.y - LeftConvexhull_Edge[l_index].end.y)/(LeftConvexhull_Edge[l_index].start.x - LeftConvexhull_Edge[l_index].end.x);
-        if(m > 0)
-            LeftConvexhull_Edge[l_index].start = *L;
-        else if(m < 0)
-            LeftConvexhull_Edge[l_index].end = *L;
-        voronoi.push_back(LeftConvexhull_Edge[l_index]);
         voronoi.push_back(edge);
-        l_index++;
+        last_point = edge;
     }
+
     while(r_index < RightConvexhull_Edge.size()) {
         pair<Point, Point> t = calculatePerpendicularBisector(LeftConvexhull_Edge[l_index-1].A, RightConvexhull_Edge[r_index].B);
         Swap(t.first, t.second);
-        t.second = prev(voronoi.end()) -> start;
-        Point A = LeftConvexhull_Edge[l_index-1].A, B = RightConvexhull_Edge[r_index].B;
-        Swap(A, B);
-        Edge edge = Edge{t.first, t.second, A, B};
-        auto R = doLinesIntersect(edge, RightConvexhull_Edge[r_index]);
-        Point M = calculateMidPoint(LeftConvexhull_Edge[l_index-1].A, RightConvexhull_Edge[r_index].B);
-
-        edge.start = *R;
-        double m = (RightConvexhull_Edge[r_index].start.y - RightConvexhull_Edge[r_index].end.y)/(RightConvexhull_Edge[r_index].start.x - RightConvexhull_Edge[r_index].end.x);
-        if(m > 0)
-            RightConvexhull_Edge[r_index].end = *R;
-        else if(m < 0)
-            RightConvexhull_Edge[r_index].start = *R;
+        Edge edge = {t.first, prev(voronoi.end()) -> start};
+        Point R = IntersectionPoint(RightConvexhull_Edge[r_index], edge);
+        edge.start = R;
+        if(calculateslope(RightConvexhull_Edge[r_index]) > 0) {
+            RightConvexhull_Edge[r_index].end = R;
+        }
+        else {
+            RightConvexhull_Edge[r_index].start = R;
+        }
         voronoi.push_back(RightConvexhull_Edge[r_index]);
         voronoi.push_back(edge);
         r_index++;
     }
+    while(l_index < LeftConvexhull_Edge.size()) {
+        pair<Point, Point> t = calculatePerpendicularBisector(LeftConvexhull_Edge[l_index].B, RightConvexhull_Edge[r_index-1].A);
+        Swap(t.first, t.second);
+        Edge edge = {t.first, prev(voronoi.end()) -> start};
+        Point L = IntersectionPoint(LeftConvexhull_Edge[l_index], edge);
+        edge.start = L;
+        if(calculateslope(LeftConvexhull_Edge[l_index]) > 0) {
+            LeftConvexhull_Edge[l_index].start = L;
+        }
+        else {
+            LeftConvexhull_Edge[l_index].end = L;
+        }
+        voronoi.push_back(LeftConvexhull_Edge[l_index]);
+        voronoi.push_back(edge);
+        l_index++;
+    }
     pair<Point, Point> t = calculatePerpendicularBisector(LeftConvexhull_Edge[l_index-1].A, RightConvexhull_Edge[r_index-1].A);
     Swap(t.first, t.second);
-    t.second = prev(voronoi.end()) -> start;
-    Point A = LeftConvexhull_Edge[l_index-1].A, B = RightConvexhull_Edge[r_index-1].A;
-    Edge edge = Edge{t.first, t.second, A, B};
+    Edge edge = {t.first, prev(voronoi.end()) -> start};
     voronoi.push_back(edge);
     return voronoi;
 }
