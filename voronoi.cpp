@@ -117,9 +117,13 @@ double crossProduct(const Point& p, const Point& a, const Point& b) {
 
 // 判斷點 P 是否在線段 AB 上
 bool isOnSegment(const Point& A, const Point& B, const Point& P) {
+
+    if(fabs(A.x - B.x) < 0.01 && abs(P.x - A.x) < 0.01) return true;
+    if(fabs(A.y - B.y) < 0.01 && abs(P.y - A.y) < 0.01) return true;
+
     double crossProduct = (B.x - A.x) * (P.y - A.y) - (B.y - A.y) * (P.x - A.x);
 
-    if (fabs(crossProduct) > 1e-9) {
+    if (fabs(crossProduct) > 0.01) {
         return false;
     }
 
@@ -587,7 +591,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(index != -1 && R_Edge) {
             hp.first = last_p;
             Point t;
-            if(calculateslope(RightConvexhull_Edge[index]) > 0) {
+            if(crossProduct(RightConvexhull_Edge[index].end, hp.first, hp.second) < 0) {
                 t = RightConvexhull_Edge[index].end;
                 RightConvexhull_Edge[index].end = last_p;
             }
@@ -620,7 +624,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         else if(index != -1) {
             hp.first = last_p;
             Point t;
-            if(calculateslope(LeftConvexhull_Edge[index]) > 0) {
+            if(crossProduct(LeftConvexhull_Edge[index].start, hp.first, hp.second) > 0) {
                 t = LeftConvexhull_Edge[index].start;
                 LeftConvexhull_Edge[index].start = last_p;
             }
@@ -703,7 +707,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(index != -1) {
             hp.first = last_p;
             Point t;
-            if(calculateslope(RightConvexhull_Edge[index]) > 0) {
+            if(crossProduct(RightConvexhull_Edge[index].end, hp.first, hp.second) < 0) {
                 t = RightConvexhull_Edge[index].end;
                 RightConvexhull_Edge[index].end = last_p;
             }
@@ -778,7 +782,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(index != -1) {
             hp.first = last_p;
             Point t;
-            if(calculateslope(LeftConvexhull_Edge[index]) > 0) {
+            if(crossProduct(LeftConvexhull_Edge[index].start, hp.first, hp.second) > 0) {
                 t = LeftConvexhull_Edge[index].start;
                 LeftConvexhull_Edge[index].start = last_p;
             }
@@ -825,14 +829,13 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(index == -1) break;
     }
 
-    cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
+    //cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
 
     if(!LeftConvexhull.size() && !RightConvexhull.size()) {
         Point last_p = {0, 0};
         pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
         Swap(hp.first, hp.second);
         if(mid_edge.size()) hp.second = prev(mid_edge.end()) -> start;
-
         mid_edge.push_back(Edge{hp.first, hp.second});
     }
 
