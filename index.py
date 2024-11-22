@@ -64,7 +64,8 @@ def draw_voronoi():
                         canvas.create_line(x1, y1, x2, y2, fill='blue', width=2)
                     except ValueError:
                         continue  # 忽略非正常數據行'
-    draw_convex_hull_from_file()   
+    draw_convex_hull()   
+    draw_hyperplane()
 
 def load_file():
     """從檔案載入測試資料並存入測資集。"""
@@ -275,7 +276,7 @@ def load_and_draw():
     output_file = True  # 載入成功
     load_draw_test_case()
     
-def draw_convex_hull_from_file():
+def draw_convex_hull():
     """
     讀取指定檔案，並用綠色將R和L各自連起來。
     """
@@ -325,6 +326,33 @@ def draw_convex_hull_from_file():
     # 在畫布上標記所有點
     for x, y in r_points + l_points:
         canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill='red', outline='')
+
+def draw_hyperplane():
+    hyperplane_points = []
+
+    try:
+        with open("hyperplane.txt", "r") as file:
+            for line in file:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.split()
+                if len(parts) == 2:
+                    try:
+                        x, y = map(float, parts)
+                        hyperplane_points.append((x, canvas_height - y))  # Y軸轉換
+                    except ValueError:
+                        continue  # 忽略非正常數據行
+    except IOError:
+        messagebox.showerror("Error", "無法讀取檔案內容。")
+        return
+
+    # 用紅色線連接所有hyperplane點
+    if len(hyperplane_points) >= 2:
+        for i in range(len(hyperplane_points) - 1):
+            x1, y1 = hyperplane_points[i]
+            x2, y2 = hyperplane_points[i + 1]
+            canvas.create_line(x1, y1, x2, y2, fill='red', width=2)
 
 # GUI設定
 root = tk.Tk()

@@ -586,14 +586,26 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         }
         if(index != -1 && R_Edge) {
             hp.first = last_p;
+            Point t;
             if(calculateslope(RightConvexhull_Edge[index]) > 0) {
+                t = RightConvexhull_Edge[index].end;
                 RightConvexhull_Edge[index].end = last_p;
             }
             else {
+                t = RightConvexhull_Edge[index].start;
                 RightConvexhull_Edge[index].start = last_p;
             }
+
             temp.push_back(RightConvexhull_Edge[index]);
             RightConvexhull_Edge.erase(RightConvexhull_Edge.begin() + index);
+
+            for(int i = 0; i < RightConvexhull_Edge.size(); i++) {
+                if((RightConvexhull_Edge[i].start == t || RightConvexhull_Edge[i].end == t) &&
+                   (RightConvexhull_Edge[i].start.x > t.x || RightConvexhull_Edge[i].end.x > t.x)) {
+                    RightConvexhull_Edge.erase(RightConvexhull_Edge.begin() + i);
+                    break;
+                }
+            }
             for(int i = 0; i < RightConvexhull.size(); i++) {
                 pair<Point, Point> p = calculatePerpendicularBisector(hyperplane.first, RightConvexhull[i]);
                 Swap(p.first, p.second);
@@ -607,14 +619,25 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         }
         else if(index != -1) {
             hp.first = last_p;
+            Point t;
             if(calculateslope(LeftConvexhull_Edge[index]) > 0) {
+                t = LeftConvexhull_Edge[index].start;
                 LeftConvexhull_Edge[index].start = last_p;
             }
             else {
+                t = LeftConvexhull_Edge[index].end;
                 LeftConvexhull_Edge[index].end = last_p;
             }
             temp.push_back(LeftConvexhull_Edge[index]);
             LeftConvexhull_Edge.erase(LeftConvexhull_Edge.begin() + index);
+
+            for(int i = 0; i < LeftConvexhull_Edge.size(); i++) {
+                if((LeftConvexhull_Edge[i].start == t || LeftConvexhull_Edge[i].end == t) &&
+                   (LeftConvexhull_Edge[i].start.x < t.x || LeftConvexhull_Edge[i].end.x < t.x)) {
+                    LeftConvexhull_Edge.erase(LeftConvexhull_Edge.begin() + i);
+                    break;
+                }
+            }
             for(int i = 0; i < LeftConvexhull.size(); i++) {
                 pair<Point, Point> p = calculatePerpendicularBisector(LeftConvexhull[i], hyperplane.second);
                 Swap(p.first, p.second);
@@ -679,14 +702,27 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         }
         if(index != -1) {
             hp.first = last_p;
+            Point t;
             if(calculateslope(RightConvexhull_Edge[index]) > 0) {
+                t = RightConvexhull_Edge[index].end;
                 RightConvexhull_Edge[index].end = last_p;
             }
             else {
+                t = RightConvexhull_Edge[index].start;
                 RightConvexhull_Edge[index].start = last_p;
             }
+
             temp.push_back(RightConvexhull_Edge[index]);
             RightConvexhull_Edge.erase(RightConvexhull_Edge.begin() + index);
+
+            for(int i = 0; i < RightConvexhull_Edge.size(); i++) {
+                if((RightConvexhull_Edge[i].start == t || RightConvexhull_Edge[i].end == t) &&
+                   (RightConvexhull_Edge[i].start.x > t.x || RightConvexhull_Edge[i].end.x > t.x)) {
+                    RightConvexhull_Edge.erase(RightConvexhull_Edge.begin() + i);
+                    break;
+                }
+            }
+
             for(int i = 0; i < RightConvexhull.size(); i++) {
                 pair<Point, Point> p = calculatePerpendicularBisector(hyperplane.first, RightConvexhull[i]);
                 Swap(p.first, p.second);
@@ -741,14 +777,25 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         }
         if(index != -1) {
             hp.first = last_p;
+            Point t;
             if(calculateslope(LeftConvexhull_Edge[index]) > 0) {
+                t = LeftConvexhull_Edge[index].start;
                 LeftConvexhull_Edge[index].start = last_p;
             }
             else {
+                t = LeftConvexhull_Edge[index].end;
                 LeftConvexhull_Edge[index].end = last_p;
             }
             temp.push_back(LeftConvexhull_Edge[index]);
             LeftConvexhull_Edge.erase(LeftConvexhull_Edge.begin() + index);
+
+            for(int i = 0; i < LeftConvexhull_Edge.size(); i++) {
+                if((LeftConvexhull_Edge[i].start == t || LeftConvexhull_Edge[i].end == t) &&
+                   (LeftConvexhull_Edge[i].start.x < t.x || LeftConvexhull_Edge[i].end.x < t.x)) {
+                    LeftConvexhull_Edge.erase(LeftConvexhull_Edge.begin() + i);
+                    break;
+                }
+            }
             for(int i = 0; i < LeftConvexhull.size(); i++) {
                 pair<Point, Point> p = calculatePerpendicularBisector(LeftConvexhull[i], hyperplane.second);
                 Swap(p.first, p.second);
@@ -778,13 +825,23 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(index == -1) break;
     }
 
+    cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
+
     if(!LeftConvexhull.size() && !RightConvexhull.size()) {
         Point last_p = {0, 0};
         pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
         Swap(hp.first, hp.second);
         if(mid_edge.size()) hp.second = prev(mid_edge.end()) -> start;
+
         mid_edge.push_back(Edge{hp.first, hp.second});
     }
+
+    outfile.open("hyperplane.txt");
+    for (const auto& edge : mid_edge) {
+        outfile << edge.end.x << " " << edge.end.y << "\n";
+    }
+    outfile << mid_edge[mid_edge.size()-1].start.x << " " << mid_edge[mid_edge.size()-1].start.y << "\n";
+    outfile.close();
 
     voronoi.insert(voronoi.end(), RightConvexhull_Edge.begin(), RightConvexhull_Edge.end());
     voronoi.insert(voronoi.end(), LeftConvexhull_Edge.begin(), LeftConvexhull_Edge.end());
