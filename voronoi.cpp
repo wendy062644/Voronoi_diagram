@@ -348,6 +348,7 @@ vector<Edge> constructConvexHull(vector<Edge>& voronoiEdges, bool Left) {
     for(int i = 0; i < voronoiEdges.size(); i++) {
         if(voronoiEdges[i].start.x == voronoiEdges[i].end.x || voronoiEdges[i].start.y == voronoiEdges[i].end.y) {
             Convexhull.push_back(voronoiEdges[i]);
+            voronoiEdges.erase(voronoiEdges.begin() + i--);
             continue;
         }
         if(voronoiEdges[i].start.y > voronoiEdges[i].end.y) {
@@ -357,6 +358,7 @@ vector<Edge> constructConvexHull(vector<Edge>& voronoiEdges, bool Left) {
         if(voronoiEdges[i].start.y == 0 || voronoiEdges[i].start.x == 0 || voronoiEdges[i].start.y == 600 || voronoiEdges[i].start.x == 600 ||
            voronoiEdges[i].end.y == 0 || voronoiEdges[i].end.x == 0 || voronoiEdges[i].end.y == 600 || voronoiEdges[i].end.x == 600) {
             Convexhull.push_back(voronoiEdges[i]);
+            voronoiEdges.erase(voronoiEdges.begin() + i--);
         }
     }
     return Convexhull;
@@ -518,6 +520,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     vector<Edge> RightConvexhull_Edge = constructConvexHull(RightEdge, 0);
     vector<Edge> LeftConvexhull_Edge = constructConvexHull(LeftEdge, 1);
 
+
     vector<Point> RightConvexhull = ConvexHull_Point(RightConvexhull_Edge);
     vector<Point> LeftConvexhull = ConvexHull_Point(LeftConvexhull_Edge);
 
@@ -540,12 +543,18 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     LeftConvexhull.erase(find(LeftConvexhull.begin(), LeftConvexhull.end(), hyperplane.first));
     RightConvexhull.erase(find(RightConvexhull.begin(), RightConvexhull.end(), hyperplane.second));
     double r_highest = 601, l_highest = 601;
+
+    if(L == 0 && R == 7) {
+        cout << hyperplane.first.x << ' ' << hyperplane.first.y << endl;
+        cout << hyperplane.second.x << ' ' << hyperplane.second.y << endl;
+    }
+
     while(LeftConvexhull.size() && RightConvexhull.size()) {
         Point last_p = {0, 0};
         bool R_Edge = 0;
         int index = -1;
         pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
-
+        Point A = hyperplane.first, B = hyperplane.second;
         Swap(hp.first, hp.second);
 
         if(mid_edge.size()) {
@@ -591,7 +600,17 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(index != -1 && R_Edge) {
             hp.first = last_p;
             Point t;
-            if(crossProduct(RightConvexhull_Edge[index].end, hp.first, hp.second) < 0) {
+            if(RightConvexhull_Edge[index].end.y == RightConvexhull_Edge[index].start.y) {
+                if(RightConvexhull_Edge[index].end.x < RightConvexhull_Edge[index].start.x) {
+                    t = RightConvexhull_Edge[index].start;
+                    RightConvexhull_Edge[index].start = last_p;
+                }
+                else {
+                    t = RightConvexhull_Edge[index].end;
+                    RightConvexhull_Edge[index].end = last_p;
+                }
+            }
+            else if(crossProduct(RightConvexhull_Edge[index].end, hp.first, hp.second) < 0) {
                 t = RightConvexhull_Edge[index].end;
                 RightConvexhull_Edge[index].end = last_p;
             }
@@ -624,7 +643,17 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         else if(index != -1) {
             hp.first = last_p;
             Point t;
-            if(crossProduct(LeftConvexhull_Edge[index].start, hp.first, hp.second) > 0) {
+            if(LeftConvexhull_Edge[index].end.y == LeftConvexhull_Edge[index].start.y) {
+                if(LeftConvexhull_Edge[index].end.x > LeftConvexhull_Edge[index].start.x) {
+                    t = LeftConvexhull_Edge[index].start;
+                    LeftConvexhull_Edge[index].start = last_p;
+                }
+                else {
+                    t = LeftConvexhull_Edge[index].end;
+                    LeftConvexhull_Edge[index].end = last_p;
+                }
+            }
+            else if(crossProduct(LeftConvexhull_Edge[index].start, hp.first, hp.second) > 0) {
                 t = LeftConvexhull_Edge[index].start;
                 LeftConvexhull_Edge[index].start = last_p;
             }
@@ -656,33 +685,39 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         else {
             double L_dis = 600*600, R_dis = 600*600, L_index = -1, R_index = -1;
             for(int i = 0; i < RightConvexhull.size(); i++) {
-                if(pow(hyperplane.first.x - RightConvexhull[i].x, 2) + pow(hyperplane.first.y - RightConvexhull[i].y, 2) < R_dis) {
+                if(pow(hyperplane.first.x - RightConvexhull[i].x, 2) + pow(hyperplane.first.y - RightConvexhull[i].y, 2) < R_dis &&
+                   RightConvexhull[i].y < r_highest) {
                     R_dis = pow(hyperplane.first.x - RightConvexhull[i].x, 2) + pow(hyperplane.first.y - RightConvexhull[i].y, 2);
                     R_index = i;
                 }
             }
             for(int i = 0; i < LeftConvexhull.size(); i++) {
-                if(pow(hyperplane.second.x - LeftConvexhull[i].x, 2) + pow(hyperplane.second.y - LeftConvexhull[i].y, 2) < L_dis) {
+                if(pow(hyperplane.second.x - LeftConvexhull[i].x, 2) + pow(hyperplane.second.y - LeftConvexhull[i].y, 2) < L_dis &&
+                   LeftConvexhull[i].y < l_highest) {
                     L_dis = pow(hyperplane.second.x - LeftConvexhull[i].x, 2) + pow(hyperplane.second.y - LeftConvexhull[i].y, 2);
                     L_index = i;
                 }
             }
-            if(R_dis < L_dis) {
+            if(R_index == -1 && L_index == -1) break;
+            if(R_dis < L_dis || L_index == -1) {
                 hyperplane.second = RightConvexhull[R_index];
+                r_highest = RightConvexhull[R_index].y;
                 RightConvexhull.erase(RightConvexhull.begin() + R_index);
             }
             else {
                 hyperplane.first = LeftConvexhull[L_index];
+                l_highest = LeftConvexhull[L_index].y;
                 LeftConvexhull.erase(LeftConvexhull.begin() + L_index);
             }
         }
-        mid_edge.push_back(Edge{hp.first, hp.second});
+        mid_edge.push_back(Edge{hp.first, hp.second, A, B});
     }
 
     while(RightConvexhull.size()) {
         Point last_p = {0, 0};
         int index = -1;
         pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
+        Point A = hyperplane.first, B = hyperplane.second;
         Swap(hp.first, hp.second);
         if(mid_edge.size()) hp.second = prev(mid_edge.end()) -> start;
 
@@ -696,9 +731,8 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                     continue;
                 }
                 else {
-                    Point t = IntersectionPoint(RightConvexhull_Edge[i], Edge{hp.first, hp.second});
-                    if(t.y > last_p.y && t.y < hp.second.y) {
-                        last_p = t;
+                    if(intersect.y > last_p.y && intersect.y < hp.second.y) {
+                        last_p = intersect;
                         index = i;
                     }
                 }
@@ -707,7 +741,17 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(index != -1) {
             hp.first = last_p;
             Point t;
-            if(crossProduct(RightConvexhull_Edge[index].end, hp.first, hp.second) < 0) {
+            if(RightConvexhull_Edge[index].end.y == RightConvexhull_Edge[index].start.y) {
+                if(RightConvexhull_Edge[index].end.x < RightConvexhull_Edge[index].start.x) {
+                    t = RightConvexhull_Edge[index].start;
+                    RightConvexhull_Edge[index].start = last_p;
+                }
+                else {
+                    t = RightConvexhull_Edge[index].end;
+                    RightConvexhull_Edge[index].end = last_p;
+                }
+            }
+            else if(crossProduct(RightConvexhull_Edge[index].end, hp.first, hp.second) < 0) {
                 t = RightConvexhull_Edge[index].end;
                 RightConvexhull_Edge[index].end = last_p;
             }
@@ -731,6 +775,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                 pair<Point, Point> p = calculatePerpendicularBisector(hyperplane.first, RightConvexhull[i]);
                 Swap(p.first, p.second);
                 if(isOnSegment(p.first, p.second, last_p) && RightConvexhull[i].y < r_highest) {
+                    r_highest = hyperplane.second.y;
                     hyperplane.second = RightConvexhull[i];
                     RightConvexhull.erase(RightConvexhull.begin()+i);
                     break;
@@ -752,18 +797,34 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                 RightConvexhull.erase(RightConvexhull.begin() + R_index);
             }
         }
-        mid_edge.push_back(Edge{hp.first, hp.second});
         if(index == -1) break;
+        mid_edge.push_back(Edge{hp.first, hp.second, A, B});
     }
 
     while(LeftConvexhull.size()) {
         Point last_p = {0, 0};
         int index = -1;
         pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
+        Point A = hyperplane.first, B = hyperplane.second;
         Swap(hp.first, hp.second);
         if(mid_edge.size()) hp.second = prev(mid_edge.end()) -> start;
+        if(L == 0 && R == 7) {
+            cout << "hyper: " << endl;
+            cout << hyperplane.first.x << ' ' << hyperplane.first.y << endl;
+            cout << hyperplane.second.x << ' ' << hyperplane.second.y << endl;
+        }
         for(int i = 0; i < LeftConvexhull_Edge.size(); i++) {
+            if(L == 0 && R == 7) {
+                cout << "L: " << endl;
+                cout << LeftConvexhull_Edge[i].A.x << ' ' << LeftConvexhull_Edge[i].A.y << endl;
+                cout << LeftConvexhull_Edge[i].B.x << ' ' << LeftConvexhull_Edge[i].B.y << endl;
+            }
             if(LeftConvexhull_Edge[i].B == hyperplane.first || LeftConvexhull_Edge[i].A == hyperplane.first) {
+                if(L == 0 && R == 7) {
+                    cout << "L: " << endl;
+                    cout << LeftConvexhull_Edge[i].start.x << ' ' << LeftConvexhull_Edge[i].start.y << endl;
+                    cout << LeftConvexhull_Edge[i].end.x << ' ' << LeftConvexhull_Edge[i].end.y << endl;
+                }
                 Point intersect = IntersectionPoint(LeftConvexhull_Edge[i], Edge{hp.first, hp.second});
                 if(intersect.x < 0 || intersect.x > 600 || intersect.y < 0 || intersect.y > 600) {
                     temp.push_back(LeftConvexhull_Edge[i]);
@@ -771,9 +832,8 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                     continue;
                 }
                 else {
-                    Point t = IntersectionPoint(LeftConvexhull_Edge[i], Edge{hp.first, hp.second});
-                    if(t.y > last_p.y && t.y < hp.second.y) {
-                        last_p = t;
+                    if(intersect.y > last_p.y && intersect.y < hp.second.y) {
+                        last_p = intersect;
                         index = i;
                     }
                 }
@@ -782,7 +842,17 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(index != -1) {
             hp.first = last_p;
             Point t;
-            if(crossProduct(LeftConvexhull_Edge[index].start, hp.first, hp.second) > 0) {
+            if(LeftConvexhull_Edge[index].end.y == LeftConvexhull_Edge[index].start.y) {
+                if(LeftConvexhull_Edge[index].end.x > LeftConvexhull_Edge[index].start.x) {
+                    t = LeftConvexhull_Edge[index].start;
+                    LeftConvexhull_Edge[index].start = last_p;
+                }
+                else {
+                    t = LeftConvexhull_Edge[index].end;
+                    LeftConvexhull_Edge[index].end = last_p;
+                }
+            }
+            else if(crossProduct(LeftConvexhull_Edge[index].start, hp.first, hp.second) > 0) {
                 t = LeftConvexhull_Edge[index].start;
                 LeftConvexhull_Edge[index].start = last_p;
             }
@@ -804,6 +874,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                 pair<Point, Point> p = calculatePerpendicularBisector(LeftConvexhull[i], hyperplane.second);
                 Swap(p.first, p.second);
                 if(isOnSegment(p.first, p.second, last_p) && LeftConvexhull[i].y < l_highest) {
+                    l_highest = LeftConvexhull[i].y;
                     hyperplane.first = LeftConvexhull[i];
                     LeftConvexhull.erase(LeftConvexhull.begin()+i);
                     break;
@@ -825,18 +896,21 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                 LeftConvexhull.erase(LeftConvexhull.begin() + L_index);
             }
         }
-        mid_edge.push_back(Edge{hp.first, hp.second});
         if(index == -1) break;
+        mid_edge.push_back(Edge{hp.first, hp.second, A, B});
     }
 
-    //cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
-
-    if(!LeftConvexhull.size() && !RightConvexhull.size()) {
+    if(1) {
+//        if(L == 0 && R == 7) {
+//            cout << hyperplane.first.x << ' ' << hyperplane.first.y << endl;
+//            cout << hyperplane.second.x << ' ' << hyperplane.second.y << endl;
+//            cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
+//        }
         Point last_p = {0, 0};
         pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
         Swap(hp.first, hp.second);
         if(mid_edge.size()) hp.second = prev(mid_edge.end()) -> start;
-        mid_edge.push_back(Edge{hp.first, hp.second});
+        mid_edge.push_back(Edge{hp.first, hp.second, hyperplane.first, hyperplane.second});
     }
 
     outfile.open("hyperplane.txt");
@@ -846,6 +920,8 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     outfile << mid_edge[mid_edge.size()-1].start.x << " " << mid_edge[mid_edge.size()-1].start.y << "\n";
     outfile.close();
 
+    voronoi.insert(voronoi.end(), RightEdge.begin(), RightEdge.end());
+    voronoi.insert(voronoi.end(), LeftEdge.begin(), LeftEdge.end());
     voronoi.insert(voronoi.end(), RightConvexhull_Edge.begin(), RightConvexhull_Edge.end());
     voronoi.insert(voronoi.end(), LeftConvexhull_Edge.begin(), LeftConvexhull_Edge.end());
     voronoi.insert(voronoi.end(), temp.begin(), temp.end());
