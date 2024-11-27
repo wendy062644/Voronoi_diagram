@@ -6,7 +6,6 @@ import math
 import subprocess
 import os
 import numpy as np
-import time
 
 canvas_height = 602  # 定義畫布的高度
 file_loaded = False
@@ -14,6 +13,7 @@ output_file = False
 current_step = 0
 hyperplane_files = []
 convexhull_files = []
+test_cases = []
 
 def clear_file_content(directory):
     try:
@@ -117,11 +117,11 @@ def load_file():
     
     current_case_index = 0
     file_loaded = True  # 載入成功
-    clear_canvas()
     load_test_case()
     
 def load_test_case():
     """載入當前測資並繪製在畫布上。"""
+    global current_case_index, test_cases
     clear_canvas()
     if 0 <= current_case_index < len(test_cases):
         for x, y in test_cases[current_case_index]:
@@ -160,11 +160,17 @@ def previous_test_case():
 
 def execute_current_points():
     """執行當前畫布上的點並生成Voronoi圖。"""
+    global current_case_index, test_cases
+    canvas.delete("all")
+    draw_voronoi()    
     if len(points) < 2:
         messagebox.showwarning("Warning", "需要至少兩個點來繪製Voronoi圖。")
         return
-    draw_voronoi()
-
+    
+    test_cases = []
+    test_cases.append(points)
+    current_case_index = 0
+        
 def clear_file_data():
     """清除上傳的測試資料記錄並切換至手動模式。"""
     global test_cases, current_case_index, file_loaded, current_step, hyperplane_files, convexhull_files
@@ -399,7 +405,8 @@ def draw_step(step):
     if step < 0 or step >= len(hyperplane_files):
         return
     current_step = step
-    load_test_case()
+    canvas.delete("all")
+    draw_voronoi()
 
 def previous_step():
     if current_step > 0:
