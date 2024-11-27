@@ -6,14 +6,29 @@ import math
 import subprocess
 import os
 import numpy as np
+import time
 
 canvas_height = 602  # 定義畫布的高度
 file_loaded = False
 output_file = False
+current_step = 0
+hyperplane_files = []
+convexhull_files = []
+
+def clear_file_content(directory):
+    try:
+        for filename in os.listdir(directory):
+            file_path = os.path.join(directory, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+    except Exception as e:
+        messagebox.showerror("Error", f"無法清空資料夾內容: {directory}\n{str(e)}")
 
 def clear_canvas():
     """清空畫布並重置點資料。"""
     canvas.delete("all")
+    clear_file_content("hyperplane")
+    clear_file_content("convexhull")
     points.clear()
 
 def click_event(event):
@@ -35,6 +50,8 @@ def draw_voronoi():
     
     # 呼叫C++執行Voronoi並捕捉輸出
     result = subprocess.run(["./voronoi"], capture_output=True, text=True)
+    
+    load_step_by_step_files()
     
     if result.returncode != 0:
         messagebox.showerror("Error", "Voronoi計算失敗。")
@@ -64,7 +81,6 @@ def draw_voronoi():
                         canvas.create_line(x1, y1, x2, y2, fill='blue', width=2)
                     except ValueError:
                         continue  # 忽略非正常數據行'
-    draw_convex_hull()   
     draw_hyperplane()
 
 def load_file():
@@ -101,24 +117,25 @@ def load_file():
     
     current_case_index = 0
     file_loaded = True  # 載入成功
+    clear_canvas()
     load_test_case()
-
+    
 def load_test_case():
     """載入當前測資並繪製在畫布上。"""
     clear_canvas()
     if 0 <= current_case_index < len(test_cases):
         for x, y in test_cases[current_case_index]:
             y = canvas_height - y  # 坐標轉換
-            canvas.create_oval(x, y-3, x+6, y+3, fill='red', outline='')
+            canvas.create_oval(x-3, y-3, x+3, y+3, fill='red', outline='')
             points.append((x, y))
         draw_voronoi()
-        case_label.config(text=f"當前測資：{current_case_index + 1} / {len(test_cases)}")
+        case_label.config(text=f"Case：{current_case_index + 1} / {len(test_cases)}")
     else:
         messagebox.showinfo("Info", "沒有更多測試資料。")
 
 def next_test_case():
     """顯示下一筆測資。"""
-    global current_case_index
+    global current_case_index, current_step
     if output_file:
         if current_case_index < len(draw_test_cases) - 1:
             current_case_index += 1
@@ -126,17 +143,19 @@ def next_test_case():
         
     elif current_case_index < len(test_cases) - 1:
         current_case_index += 1
+        current_step = 0
         load_test_case()
 
 def previous_test_case():
     """顯示上一筆測資。"""
-    global current_case_index
+    global current_case_index, current_step
     if output_file:
         if current_case_index > 0:
             current_case_index -= 1
             load_draw_test_case()
     elif current_case_index > 0:
         current_case_index -= 1
+        current_step = 0
         load_test_case()
 
 def execute_current_points():
@@ -148,12 +167,16 @@ def execute_current_points():
 
 def clear_file_data():
     """清除上傳的測試資料記錄並切換至手動模式。"""
-    global test_cases, current_case_index, file_loaded
+    global test_cases, current_case_index, file_loaded, current_step, hyperplane_files, convexhull_files
     clear_canvas()
     test_cases = []
+    hyperplane_files = []
+    convexhull_files = []
     current_case_index = -1
+    current_step = 0
     file_loaded = False  # 確保手動模式
-    case_label.config(text="當前測資：0 / 0")
+    case_label.config(text="Case：0 / 0")
+    step_label.config(text="Step：0 / 0")
 
 def save_output():
     """將所有測資的點座標和線段輸出至同一檔案。"""
@@ -251,7 +274,7 @@ def load_draw_test_case():
     clear_canvas()
     if 0 <= current_case_index < len(draw_test_cases):
         draw_from_data(draw_test_cases[current_case_index])
-        case_label.config(text=f"當前畫布測資：{current_case_index + 1} / {len(draw_test_cases)}")
+        case_label.config(text=f"Case：{current_case_index + 1} / {len(draw_test_cases)}")
     else:
         messagebox.showinfo("Info", "沒有更多測試資料。")
 
@@ -261,7 +284,6 @@ def load_and_draw():
     file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
     if not file_path:
         return
-    
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             data = file.read()
@@ -275,17 +297,61 @@ def load_and_draw():
     file_loaded = False  # 避免與檔案測資混淆
     output_file = True  # 載入成功
     load_draw_test_case()
+
+# 讀取 hyperplane 資料夾中的所有檔案
+def load_step_by_step_files():
+    global hyperplane_files, convexhull_files
+    hyperplane_dir = "hyperplane"
+    convexhull_dir = "convexhull"
+    try:
+        hyperplane_files = [f for f in os.listdir(hyperplane_dir) if f.startswith("hyperplane") and f.endswith(".txt")]
+        convexhull_files = [f for f in os.listdir(convexhull_dir) if f.startswith("convexhull") and f.endswith(".txt")]
+        hyperplane_files.sort()  # 排序檔案以保證順序
+        convexhull_files.sort()  # 排序檔案以保證順序
+        step_label.config(text=f"Step：{current_step + 1} / {len(hyperplane_files)}")
+    except IOError:
+        messagebox.showerror("Error", "無法讀取超平面或凸包檔案。")
+
+def draw_hyperplane():
     
-def draw_convex_hull():
-    """
-    讀取指定檔案，並用綠色將R和L各自連起來。
-    """
-    # 分別存儲R和L類型的點
+    if current_step < 0 or current_step >= len(hyperplane_files):
+        return
+    
+    hyperplane_points = []
+    
+    step_label.config(text=f"Step：{current_step + 1} / {len(hyperplane_files)}")
+
+    filename = os.path.join("hyperplane", hyperplane_files[current_step])
+    try:
+        with open(filename, "r") as file:
+            for line in file:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.split()
+                if len(parts) == 2:
+                    try:
+                        x, y = map(float, parts)
+                        hyperplane_points.append((x, canvas_height - y))  # Y軸轉換
+                    except ValueError:
+                        continue  # 忽略非正常數據行
+    except IOError:
+        messagebox.showerror("Error", f"無法讀取檔案: {filename}")
+        return
+
+    # 用紅色線連接所有hyperplane點
+    if len(hyperplane_points) >= 2:
+        for i in range(len(hyperplane_points) - 1):
+            x1, y1 = hyperplane_points[i]
+            x2, y2 = hyperplane_points[i + 1]
+            canvas.create_line(x1, y1, x2, y2, fill='red', width=2)
+    
     r_points = []
     l_points = []
 
+    filename = os.path.join("convexhull", convexhull_files[current_step])
     try:
-        with open("convexhull.txt", "r") as file:
+        with open(filename, "r") as file:
             for line in file:
                 line = line.strip()
                 if not line:
@@ -302,7 +368,7 @@ def draw_convex_hull():
                     except ValueError:
                         continue  # 忽略非正常數據行
     except IOError:
-        messagebox.showerror("Error", "無法讀取檔案內容。")
+        messagebox.showerror("Error", f"無法讀取檔案: {filename}")
         return
 
     # 畫出R類型點的凸包
@@ -325,34 +391,23 @@ def draw_convex_hull():
 
     # 在畫布上標記所有點
     for x, y in r_points + l_points:
-        canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill='red', outline='')
+        canvas.create_oval(x - 3, y - 3, x + 3, y + 3, fill='orange', outline='')
 
-def draw_hyperplane():
-    hyperplane_points = []
-
-    try:
-        with open("hyperplane.txt", "r") as file:
-            for line in file:
-                line = line.strip()
-                if not line:
-                    continue
-                parts = line.split()
-                if len(parts) == 2:
-                    try:
-                        x, y = map(float, parts)
-                        hyperplane_points.append((x, canvas_height - y))  # Y軸轉換
-                    except ValueError:
-                        continue  # 忽略非正常數據行
-    except IOError:
-        messagebox.showerror("Error", "無法讀取檔案內容。")
+def draw_step(step):
+    global current_step
+    # 確保步驟在有效範圍內
+    if step < 0 or step >= len(hyperplane_files):
         return
+    current_step = step
+    load_test_case()
 
-    # 用紅色線連接所有hyperplane點
-    if len(hyperplane_points) >= 2:
-        for i in range(len(hyperplane_points) - 1):
-            x1, y1 = hyperplane_points[i]
-            x2, y2 = hyperplane_points[i + 1]
-            canvas.create_line(x1, y1, x2, y2, fill='red', width=2)
+def previous_step():
+    if current_step > 0:
+        draw_step(current_step - 1)
+
+def next_step():
+    if current_step < len(hyperplane_files) - 1:
+        draw_step(current_step + 1)
 
 # GUI設定
 root = tk.Tk()
@@ -378,23 +433,32 @@ clear_button.grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
 load_button = ttk.Button(main_frame, text="Load Points from File", command=load_file)
 load_button.grid(row=1, column=1, padx=5, pady=5, sticky=tk.W)
 
+execute_button = ttk.Button(main_frame, text="Execute Current Points", command=execute_current_points)
+execute_button.grid(row=1, column=2, padx=5, pady=5, sticky=tk.W)
+
 load_draw_button = ttk.Button(main_frame, text="Load Output", command=load_and_draw)
 load_draw_button.grid(row=1, column=3, padx=5, pady=5, sticky=tk.W)
 
-prev_button = ttk.Button(main_frame, text="Previous Test Case", command=previous_test_case)
+prev_button = ttk.Button(main_frame, text="Prev Test Case", command=previous_test_case)
 prev_button.grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
 
 next_button = ttk.Button(main_frame, text="Next Test Case", command=next_test_case)
-next_button.grid(row=2, column=1, padx=5, pady=5, sticky=tk.W)
-
-execute_button = ttk.Button(main_frame, text="Execute Current Points", command=execute_current_points)
-execute_button.grid(row=1, column=2, padx=5, pady=5, sticky=tk.W)
+next_button.grid(row=2, column=2, padx=5, pady=5, sticky=tk.W)
 
 save_button = ttk.Button(main_frame, text="Save Output", command=save_output)
 save_button.grid(row=2, column=3, padx=5, pady=5, sticky=tk.W)
 
-case_label = ttk.Label(main_frame, text="當前測資：0 / 0")
-case_label.grid(row=2, column=2, padx=5, pady=5, sticky=tk.W)
+case_label = ttk.Label(main_frame, text="Case：0 / 0")
+case_label.grid(row=2, column=1, padx=5, pady=5, sticky=tk.W)
+
+previous_button = ttk.Button(main_frame, text="Prev Step", command=previous_step)
+previous_button.grid(row=3, column=0, padx=10, pady=10)
+
+step_label = ttk.Label(main_frame, text="Step: 0 / 0")
+step_label.grid(row=3, column=1, padx=10, pady=10)
+
+next_button = ttk.Button(main_frame, text="Next Step", command=next_step)
+next_button.grid(row=3, column=2, padx=10, pady=10)
 
 canvas.bind("<Button-1>", click_event)
 

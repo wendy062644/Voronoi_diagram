@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+int file_num = 1;
+
 struct Point {
     double x, y;
 
@@ -524,7 +526,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     vector<Point> RightConvexhull = ConvexHull_Point(RightConvexhull_Edge);
     vector<Point> LeftConvexhull = ConvexHull_Point(LeftConvexhull_Edge);
 
-    ofstream outfile("convexhull.txt");
+    ofstream outfile("convexhull/convexhull" + to_string(file_num) + ".txt");
     for (const auto& edge : RightConvexhull) {
         outfile << "R " << edge.x << " " << edge.y << "\n";
     }
@@ -901,11 +903,6 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     }
 
     if(1) {
-//        if(L == 0 && R == 7) {
-//            cout << hyperplane.first.x << ' ' << hyperplane.first.y << endl;
-//            cout << hyperplane.second.x << ' ' << hyperplane.second.y << endl;
-//            cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
-//        }
         Point last_p = {0, 0};
         pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
         Swap(hp.first, hp.second);
@@ -913,10 +910,11 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         mid_edge.push_back(Edge{hp.first, hp.second, hyperplane.first, hyperplane.second});
     }
 
-    outfile.open("hyperplane.txt");
+    outfile.open("hyperplane/hyperplane" + to_string(file_num++) + ".txt");
     for (const auto& edge : mid_edge) {
         outfile << edge.end.x << " " << edge.end.y << "\n";
     }
+
     outfile << mid_edge[mid_edge.size()-1].start.x << " " << mid_edge[mid_edge.size()-1].start.y << "\n";
     outfile.close();
 
