@@ -33,6 +33,7 @@ struct Edge {
 
 vector<Point> points;
 vector<Edge> edges;
+int Max_num = 100000, Min_num = -100000;
 
 pair<Point, Point> calculatePerpendicularBisector(const Point& A, const Point& B) {
     double x = (A.x + B.x) / 2;
@@ -40,56 +41,62 @@ pair<Point, Point> calculatePerpendicularBisector(const Point& A, const Point& B
 
     Point startPoint, endPoint;
 
-    if (B.y - A.y == 0) { // 水平
+    const double Min_num = -100000;
+    const double Max_num = 100000;
+
+    // 水平
+    if (B.y - A.y == 0) {
         startPoint.x = x;
-        startPoint.y = 0;
+        startPoint.y = Min_num;
         endPoint.x = x;
-        endPoint.y = 600;
+        endPoint.y = Max_num;
         return {startPoint, endPoint};
     }
-    if (B.x - A.x == 0) { // 垂直
-        startPoint.x = 0;
+
+    // 垂直
+    if (B.x - A.x == 0) {
+        startPoint.x = Min_num;
         startPoint.y = y;
-        endPoint.x = 600;
+        endPoint.x = Max_num;
         endPoint.y = y;
         return {startPoint, endPoint};
     }
 
-    double m = -(1.0 / ((B.y - A.y) / (B.x - A.x)));
+    double m = -(B.x - A.x) / (B.y - A.y);
 
     if (m > 0) {
-        if ((600 - y) / m > 600 - x) {
-            endPoint.x = 600;
-            endPoint.y = y + (600 - x) * m;
+        if ((Max_num - y) / m + x <= Max_num) {
+            endPoint.x = x + (Max_num - y) / m;
+            endPoint.y = Max_num;
         } else {
-            endPoint.x = x + (600 - y) / m;
-            endPoint.y = 600;
+            endPoint.x = Max_num;
+            endPoint.y = y + m * (Max_num - x);
         }
-
-        if (y / m > x) {
-            startPoint.x = 0;
-            startPoint.y = y - x * m;
+        if ((y - Min_num) / m + x >= Min_num) {
+            startPoint.x = x - (y - Min_num) / m;
+            startPoint.y = Min_num;
         } else {
-            startPoint.x = x - y / m;
-            startPoint.y = 0;
+            startPoint.x = Min_num;
+            startPoint.y = y - m * (x - Min_num);
         }
     } else {
-        if (-y / m > 600 - x) {
-            endPoint.x = 600;
-            endPoint.y = y + (600 - x) * m;
+        if ((y - Min_num) / m + x <= Max_num) {
+            endPoint.x = x - (y - Min_num) / m;
+            endPoint.y = Min_num;
         } else {
-            endPoint.x = x - y / m;
-            endPoint.y = 0;
+            endPoint.x = Max_num;
+            endPoint.y = y + m * (Max_num - x);
         }
 
-        if ((y - 600) / m > x) {
-            startPoint.x = 0;
-            startPoint.y = y - x * m;
+        if ((Max_num - y) / m + x >= Min_num) {
+            startPoint.x = x + (Max_num - y) / m;
+            startPoint.y = Max_num;
         } else {
-            startPoint.x = x + (600 - y) / m;
-            startPoint.y = 600;
+            startPoint.x = Min_num;
+            startPoint.y = y - m * (x - Min_num);
         }
     }
+
     return {startPoint, endPoint};
 }
 
@@ -114,18 +121,35 @@ Point calculateIntersection(double slope1, Point mid1, double slope2, Point mid2
 
 // 判斷點是否在基準線的左側
 double crossProduct(const Point& p, const Point& a, const Point& b) {
+    if (a.y == b.y) { // 水平
+        if (p.y > a.y) {
+            return -1;
+        } else if (p.y < a.y) {
+            return 1;
+        } else {
+            return 0;
+        }
+    } else if (a.x == b.x) { // 垂直
+        if (p.x > a.x) {
+            return -1;
+        } else if (p.x < a.x) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
     return (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
 }
 
 // 判斷點 P 是否在線段 AB 上
 bool isOnSegment(const Point& A, const Point& B, const Point& P) {
 
-    if(fabs(A.x - B.x) < 0.01 && abs(P.x - A.x) < 0.01) return true;
-    if(fabs(A.y - B.y) < 0.01 && abs(P.y - A.y) < 0.01) return true;
+    if(fabs(A.x - B.x) < 0.0001 && abs(P.x - A.x) < 0.0001) return true;
+    if(fabs(A.y - B.y) < 0.0001 && abs(P.y - A.y) < 0.0001) return true;
 
     double crossProduct = (B.x - A.x) * (P.y - A.y) - (B.y - A.y) * (P.x - A.x);
 
-    if (fabs(crossProduct) > 0.01) {
+    if (fabs(crossProduct) > 0.0001) {
         return false;
     }
 
@@ -138,7 +162,7 @@ pair<Point, Point> adjustPointToBoundary(const Point& p1, const Point& p2) {
     if (p2.y - p1.y == 0) { // 水平
         startPoint.x = 0;
         startPoint.y = p2.y;
-        endPoint.x = 600;
+        endPoint.x = Max_num;
         endPoint.y = p2.y;
         return {startPoint, endPoint};
     }
@@ -146,37 +170,37 @@ pair<Point, Point> adjustPointToBoundary(const Point& p1, const Point& p2) {
         startPoint.x = p2.x;
         startPoint.y = 0;
         endPoint.x = p2.x;
-        endPoint.y = 600;
+        endPoint.y = Max_num;
         return {startPoint, endPoint};
     }
     double m = (p1.y-p2.y) / (p1.x-p2.x);
 
-    if (p2.x > 600) {  // 右邊界
-        endPoint.x = 600;
-        endPoint.y = p1.y + (600 - p1.x) * m;
+    if (p2.x > Max_num) {  // 右邊界
+        endPoint.x = Max_num;
+        endPoint.y = p1.y + (Max_num - p1.x) * m;
     } else if (p2.x < 0) {  // 左邊界
         endPoint.x = 0;
         endPoint.y = p1.y + (0 - p1.x) * m;
     }
 
-    if (endPoint.y > 600) {  // 上邊界
-        endPoint.y = 600;
-        endPoint.x = p1.x + (600 - p1.y) / m;
+    if (endPoint.y > Max_num) {  // 上邊界
+        endPoint.y = Max_num;
+        endPoint.x = p1.x + (Max_num - p1.y) / m;
     } else if (endPoint.y < 0) {  // 下邊界
         endPoint.y = 0;
         endPoint.x = p1.x - (p1.y / m);
     }
-    if (p1.x > 600) {
-        startPoint.x = 600;
-        startPoint.y = p2.y + (600 - p2.x) * m;
+    if (p1.x > Max_num) {
+        startPoint.x = Max_num;
+        startPoint.y = p2.y + (Max_num - p2.x) * m;
     } else if (p1.x < 0) {
         startPoint.x = 0;
         startPoint.y = p2.y + (0 - p2.x) * m;
     }
 
-    if (startPoint.y > 600) {
-        startPoint.y = 600;
-        startPoint.x = p2.x + (600 - p2.y) / m;
+    if (startPoint.y > Max_num) {
+        startPoint.y = Max_num;
+        startPoint.x = p2.x + (Max_num - p2.y) / m;
     } else if (startPoint.y < 0) {
         startPoint.y = 0;
         startPoint.x = p2.x - (p2.y / m);
@@ -275,16 +299,68 @@ vector<Edge> trangle(const Point A, const Point B, const Point C, Point &t) {
 }
 
 Point IntersectionPoint(const Edge& A, const Edge& B) {
-    double slope1 = (A.end.y - A.start.y) / (A.end.x - A.start.x);
-    double slope2 = (B.end.y - B.start.y) / (B.end.x - B.start.x);
+    // 判斷是否為垂直線或水平線
+    bool A_vertical = fabs(A.end.x - A.start.x) < 0.01;
+    bool A_horizontal = fabs(A.end.y - A.start.y) < 0.01;
+    bool B_vertical = fabs(B.end.x - B.start.x) < 0.01;
+    bool B_horizontal = fabs(B.end.y - B.start.y) < 0.01;
 
-    double x = ((slope1 * A.start.x - A.start.y) - (slope2 * B.start.x - B.start.y)) / (slope1 - slope2);
-    double y = slope1 * (x - A.start.x) + A.start.y;
+    double x, y;
+
+    if (A_vertical && B_vertical) {
+        // 都垂直
+        return Point{-12345, -12345};
+        throw invalid_argument("Both edges are vertical and parallel, no intersection.");
+    } else if (A_horizontal && B_horizontal) {
+        // 都水平
+        return Point{-12345, -12345};
+        throw invalid_argument("Both edges are horizontal and parallel, no intersection.");
+    } else if (A_vertical) {
+        x = A.start.x;
+        if (B_horizontal) {
+            y = B.start.y;
+        } else {
+            double slope_B = (B.end.y - B.start.y) / (B.end.x - B.start.x);
+            y = slope_B * (x - B.start.x) + B.start.y;
+        }
+    } else if (B_vertical) {
+        x = B.start.x;
+        if (A_horizontal) {
+            y = A.start.y;
+        } else {
+            double slope1 = (A.end.y - A.start.y) / (A.end.x - A.start.x);
+            y = slope1 * (x - A.start.x) + A.start.y;
+        }
+    } else if (A_horizontal) {
+        y = A.start.y;
+        double slope2 = (B.end.y - B.start.y) / (B.end.x - B.start.x);
+        x = (y - B.start.y) / slope2 + B.start.x;
+    } else if (B_horizontal) {
+        y = B.start.y;
+        double slope1 = (A.end.y - A.start.y) / (A.end.x - A.start.x);
+        x = (y - A.start.y) / slope1 + A.start.x;
+    } else {
+        double slope1 = (A.end.y - A.start.y) / (A.end.x - A.start.x);
+        double slope2 = (B.end.y - B.start.y) / (B.end.x - B.start.x);
+
+        if (slope1 == slope2) {
+            return {-12345, -12345};
+            throw invalid_argument("Edges are parallel, no intersection.");
+        }
+
+        x = ((slope1 * A.start.x - A.start.y) - (slope2 * B.start.x - B.start.y)) / (slope1 - slope2);
+        y = slope1 * (x - A.start.x) + A.start.y;
+    }
 
     return Point{x, y};
 }
 
+
 pair<Point, Point> HyperPlane(const vector<Point>& leftConvexHull, const vector<Point>& rightConvexHull) {
+    Point bestLeft = leftConvexHull[0];
+    Point bestRight = rightConvexHull[0];
+    bool found = false;
+
     for(int i = 0; i < leftConvexHull.size(); i++) {
         for(int j = 0; j < rightConvexHull.size(); j++) {
             bool b = 1;
@@ -298,9 +374,16 @@ pair<Point, Point> HyperPlane(const vector<Point>& leftConvexHull, const vector<
                     b = 0;
                 }
             }
-            if(b) return {leftConvexHull[i], rightConvexHull[j]};
+            if (b) {
+                if (!found || rightConvexHull[j].x > bestRight.x || (rightConvexHull[j].x == bestRight.x && leftConvexHull[i].x < bestLeft.x)) {
+                    bestLeft = leftConvexHull[i];
+                    bestRight = rightConvexHull[j];
+                    found = true;
+                }
+            }
         }
     }
+    return {bestLeft, bestRight};
 }
 
 optional<Point> doLinesIntersect(const Edge& A, const Edge& B) {
@@ -350,7 +433,7 @@ vector<Edge> constructConvexHull(vector<Edge>& voronoiEdges, bool Left) {
     for(int i = 0; i < voronoiEdges.size(); i++) {
         if(voronoiEdges[i].start.x == voronoiEdges[i].end.x || voronoiEdges[i].start.y == voronoiEdges[i].end.y) {
             Convexhull.push_back(voronoiEdges[i]);
-            voronoiEdges.erase(voronoiEdges.begin() + i--);
+            //voronoiEdges.erase(voronoiEdges.begin() + i--);
             continue;
         }
         if(voronoiEdges[i].start.y > voronoiEdges[i].end.y) {
@@ -360,7 +443,7 @@ vector<Edge> constructConvexHull(vector<Edge>& voronoiEdges, bool Left) {
         if(voronoiEdges[i].start.y == 0 || voronoiEdges[i].start.x == 0 || voronoiEdges[i].start.y == 600 || voronoiEdges[i].start.x == 600 ||
            voronoiEdges[i].end.y == 0 || voronoiEdges[i].end.x == 0 || voronoiEdges[i].end.y == 600 || voronoiEdges[i].end.x == 600) {
             Convexhull.push_back(voronoiEdges[i]);
-            voronoiEdges.erase(voronoiEdges.begin() + i--);
+            //voronoiEdges.erase(voronoiEdges.begin() + i--);
         }
     }
     return Convexhull;
@@ -522,9 +605,8 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     vector<Edge> RightConvexhull_Edge = constructConvexHull(RightEdge, 0);
     vector<Edge> LeftConvexhull_Edge = constructConvexHull(LeftEdge, 1);
 
-
-    vector<Point> RightConvexhull = ConvexHull_Point(RightConvexhull_Edge);
-    vector<Point> LeftConvexhull = ConvexHull_Point(LeftConvexhull_Edge);
+    vector<Point> RightConvexhull = ConvexHull_Point(RightEdge);
+    vector<Point> LeftConvexhull = ConvexHull_Point(LeftEdge);
 
     ofstream outfile("convexhull/convexhull" + to_string(file_num) + ".txt");
     for (const auto& edge : RightConvexhull) {
@@ -539,376 +621,158 @@ vector<Edge> recursiveVoronoi(int L, int R) {
 
     vector<Edge> mid_edge, temp;
 
-
     pair<Point, Point> hyperplane = HyperPlane(LeftConvexhull, RightConvexhull);
 
     LeftConvexhull.erase(find(LeftConvexhull.begin(), LeftConvexhull.end(), hyperplane.first));
     RightConvexhull.erase(find(RightConvexhull.begin(), RightConvexhull.end(), hyperplane.second));
-    double r_highest = 601, l_highest = 601;
 
-    if(L == 0 && R == 7) {
-        cout << hyperplane.first.x << ' ' << hyperplane.first.y << endl;
-        cout << hyperplane.second.x << ' ' << hyperplane.second.y << endl;
-    }
-
-    while(LeftConvexhull.size() && RightConvexhull.size()) {
-        Point last_p = {0, 0};
-        bool R_Edge = 0;
-        int index = -1;
-        pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
-        Point A = hyperplane.first, B = hyperplane.second;
-        Swap(hp.first, hp.second);
-
+    while(LeftConvexhull.size() || RightConvexhull.size()) {
+        cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
+        pair<Point, Point> hyp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
+        Swap(hyp.first, hyp.second);
         if(mid_edge.size()) {
-            hp.second = prev(mid_edge.end()) -> start;
+            hyp.second = prev(mid_edge.end()) -> start;
         }
-
-        for(int i = 0; i < RightConvexhull_Edge.size(); i++) {
-            if(RightConvexhull_Edge[i].B == hyperplane.second || RightConvexhull_Edge[i].A == hyperplane.second ||
-               RightConvexhull_Edge[i].B == hyperplane.first || RightConvexhull_Edge[i].A == hyperplane.first) {
-                Point intersect = IntersectionPoint(RightConvexhull_Edge[i], Edge{hp.first, hp.second});
-                if(intersect.x < 0 || intersect.x > 600 || intersect.y < 0 || intersect.y > 600) {
-                    //temp.push_back(RightConvexhull_Edge[i]);
-                    //RightConvexhull_Edge.erase(RightConvexhull_Edge.begin() + i);
-                    continue;
-                }
-                else {
-                    if(intersect.y > last_p.y && isOnSegment(RightConvexhull_Edge[i].start, RightConvexhull_Edge[i].end, intersect)) {
-                        last_p = intersect;
-                        index = i;
-                        R_Edge = 1;
-                    }
-                }
+        Point r = {0, -1}, l = {-1, -1};
+        int r_index = -1, l_index = -1, no_outline = 0;
+        for(int i = 0; i < RightEdge.size(); i++) {
+            Point intersect = IntersectionPoint(Edge{hyp.first, hyp.second}, RightEdge[i]);
+            cout << intersect.x << ' ' << intersect.y << endl;
+            cout << hyp.first.x << ' ' << hyp.first.y << endl;
+            cout << hyp.second.x << ' ' << hyp.second.y << endl;
+            cout << RightEdge[i].start.x << ' ' << RightEdge[i].start.y << endl;
+            cout << RightEdge[i].end.x << ' ' << RightEdge[i].end.y << endl;
+            if(isOnSegment(RightEdge[i].start, RightEdge[i].end, intersect) && intersect.y > r.y) {
+                r = intersect;
+                r_index = i;
             }
-        }
-        for(int i = 0; i < LeftConvexhull_Edge.size(); i++) {
-            if(LeftConvexhull_Edge[i].B == hyperplane.first || LeftConvexhull_Edge[i].A == hyperplane.first ||
-               LeftConvexhull_Edge[i].B == hyperplane.second || LeftConvexhull_Edge[i].A == hyperplane.second) {
-                Point intersect = IntersectionPoint(LeftConvexhull_Edge[i], Edge{hp.first, hp.second});
-                if(intersect.x < 0 || intersect.x > 600 || intersect.y < 0 || intersect.y > 600) {
-                    //temp.push_back(LeftConvexhull_Edge[i]);
-                    //LeftConvexhull_Edge.erase(LeftConvexhull_Edge.begin() + i);
-                    continue;
-                }
-                else {
-                    if(intersect.y > last_p.y && isOnSegment(LeftConvexhull_Edge[i].start, LeftConvexhull_Edge[i].end, intersect)) {
-                        last_p = intersect;
-                        index = i;
-                        R_Edge = 0;
-                    }
-                }
+            else if(intersect.x >= 0 && intersect.y >= 0 && intersect.x <= 600 && intersect.y <= 600
+                && intersect.y > r.y && isOnSegment(RightEdge[i].start, RightEdge[i].end, intersect)) {
+                r = intersect;
+                r_index = i;
             }
         }
-        if(index != -1 && R_Edge) {
-            hp.first = last_p;
-            Point t;
-            if(RightConvexhull_Edge[index].end.y == RightConvexhull_Edge[index].start.y) {
-                if(RightConvexhull_Edge[index].end.x < RightConvexhull_Edge[index].start.x) {
-                    t = RightConvexhull_Edge[index].start;
-                    RightConvexhull_Edge[index].start = last_p;
-                }
-                else {
-                    t = RightConvexhull_Edge[index].end;
-                    RightConvexhull_Edge[index].end = last_p;
-                }
+        for(int i = 0; i < LeftEdge.size(); i++) {
+            Point intersect = IntersectionPoint(Edge{hyp.first, hyp.second}, LeftEdge[i]);
+            if(intersect.y > l.y && isOnSegment(LeftEdge[i].start, LeftEdge[i].end, intersect)) {
+                l = intersect;
+                l_index = i;
             }
-            else if(crossProduct(RightConvexhull_Edge[index].end, hp.first, hp.second) < 0) {
-                t = RightConvexhull_Edge[index].end;
-                RightConvexhull_Edge[index].end = last_p;
+            else if(intersect.x >= 0 && intersect.y >= 0 && intersect.x <= 600 && intersect.y <= 600
+                && intersect.y > l.y && isOnSegment(LeftEdge[i].start, LeftEdge[i].end, intersect)) {
+                l = intersect;
+                l_index = i;
             }
-            else {
-                t = RightConvexhull_Edge[index].start;
-                RightConvexhull_Edge[index].start = last_p;
+        }
+        cout << "y:" << l.y << ' ' << r.y << endl;
+        if(r.y > l.y) {
+            if(r.y < 600) {
+                if(crossProduct(RightEdge[r_index].end, hyp.first, hyp.second) < 0)
+                    RightEdge[r_index].end = r;
+                else
+                    RightEdge[r_index].start = r;
+                hyp.first = r;
+                no_outline = 1;
             }
-
-            temp.push_back(RightConvexhull_Edge[index]);
-            RightConvexhull_Edge.erase(RightConvexhull_Edge.begin() + index);
-
-            for(int i = 0; i < RightConvexhull_Edge.size(); i++) {
-                if((RightConvexhull_Edge[i].start == t || RightConvexhull_Edge[i].end == t) &&
-                   (RightConvexhull_Edge[i].start.x > t.x || RightConvexhull_Edge[i].end.x > t.x)) {
-                    RightConvexhull_Edge.erase(RightConvexhull_Edge.begin() + i);
-                    break;
-                }
-            }
+            temp.push_back(RightEdge[r_index]);
+            RightEdge.erase(RightEdge.begin() + r_index);
             for(int i = 0; i < RightConvexhull.size(); i++) {
-                pair<Point, Point> p = calculatePerpendicularBisector(hyperplane.first, RightConvexhull[i]);
-                Swap(p.first, p.second);
-                if(isOnSegment(p.first, p.second, last_p) && RightConvexhull[i].y < r_highest) {
+                pair<Point, Point> t = calculatePerpendicularBisector(hyperplane.first, RightConvexhull[i]);
+                Point p = IntersectionPoint(Edge{hyp.first, hyp.second}, Edge{t.first, t.second});
+                if(p == r) {
                     hyperplane.second = RightConvexhull[i];
-                    r_highest = RightConvexhull[i].y;
-                    RightConvexhull.erase(RightConvexhull.begin()+i);
+                    RightConvexhull.erase(RightConvexhull.begin() + i);
                     break;
                 }
             }
         }
-        else if(index != -1) {
-            hp.first = last_p;
-            Point t;
-            if(LeftConvexhull_Edge[index].end.y == LeftConvexhull_Edge[index].start.y) {
-                if(LeftConvexhull_Edge[index].end.x > LeftConvexhull_Edge[index].start.x) {
-                    t = LeftConvexhull_Edge[index].start;
-                    LeftConvexhull_Edge[index].start = last_p;
-                }
-                else {
-                    t = LeftConvexhull_Edge[index].end;
-                    LeftConvexhull_Edge[index].end = last_p;
-                }
+        else if(l.y > r.y) {
+            if(l.y < 600) {
+                cout << "cross: " << crossProduct(LeftEdge[l_index].end, hyp.first, hyp.second) << endl;
+                if(crossProduct(LeftEdge[l_index].end, hyp.first, hyp.second) > 0)
+                    LeftEdge[l_index].end = l;
+                else
+                    LeftEdge[l_index].start = l;
+                hyp.first = l;
+                no_outline = 1;
             }
-            else if(crossProduct(LeftConvexhull_Edge[index].start, hp.first, hp.second) > 0) {
-                t = LeftConvexhull_Edge[index].start;
-                LeftConvexhull_Edge[index].start = last_p;
-            }
-            else {
-                t = LeftConvexhull_Edge[index].end;
-                LeftConvexhull_Edge[index].end = last_p;
-            }
-            temp.push_back(LeftConvexhull_Edge[index]);
-            LeftConvexhull_Edge.erase(LeftConvexhull_Edge.begin() + index);
-
-            for(int i = 0; i < LeftConvexhull_Edge.size(); i++) {
-                if((LeftConvexhull_Edge[i].start == t || LeftConvexhull_Edge[i].end == t) &&
-                   (LeftConvexhull_Edge[i].start.x < t.x || LeftConvexhull_Edge[i].end.x < t.x)) {
-                    LeftConvexhull_Edge.erase(LeftConvexhull_Edge.begin() + i);
-                    break;
-                }
-            }
+            temp.push_back(LeftEdge[l_index]);
+            LeftEdge.erase(LeftEdge.begin() + l_index);
             for(int i = 0; i < LeftConvexhull.size(); i++) {
-                pair<Point, Point> p = calculatePerpendicularBisector(LeftConvexhull[i], hyperplane.second);
-                Swap(p.first, p.second);
-                if(isOnSegment(p.first, p.second, last_p) && LeftConvexhull[i].y < l_highest) {
+                pair<Point, Point> t = calculatePerpendicularBisector(LeftConvexhull[i], hyperplane.second);
+                Point p = IntersectionPoint(Edge{hyp.first, hyp.second}, Edge{t.first, t.second});
+                if(p == l) {
                     hyperplane.first = LeftConvexhull[i];
-                    l_highest = LeftConvexhull[i].y;
-                    LeftConvexhull.erase(LeftConvexhull.begin()+i);
+                    LeftConvexhull.erase(LeftConvexhull.begin() + i--);
                     break;
                 }
             }
         }
         else {
-            double L_dis = 600*600, R_dis = 600*600, L_index = -1, R_index = -1;
-            for(int i = 0; i < RightConvexhull.size(); i++) {
-                if(pow(hyperplane.first.x - RightConvexhull[i].x, 2) + pow(hyperplane.first.y - RightConvexhull[i].y, 2) < R_dis &&
-                   RightConvexhull[i].y < r_highest) {
-                    R_dis = pow(hyperplane.first.x - RightConvexhull[i].x, 2) + pow(hyperplane.first.y - RightConvexhull[i].y, 2);
-                    R_index = i;
-                }
-            }
-            for(int i = 0; i < LeftConvexhull.size(); i++) {
-                if(pow(hyperplane.second.x - LeftConvexhull[i].x, 2) + pow(hyperplane.second.y - LeftConvexhull[i].y, 2) < L_dis &&
-                   LeftConvexhull[i].y < l_highest) {
-                    L_dis = pow(hyperplane.second.x - LeftConvexhull[i].x, 2) + pow(hyperplane.second.y - LeftConvexhull[i].y, 2);
-                    L_index = i;
-                }
-            }
-            if(R_index == -1 && L_index == -1) break;
-            if(R_dis < L_dis || L_index == -1) {
-                hyperplane.second = RightConvexhull[R_index];
-                r_highest = RightConvexhull[R_index].y;
-                RightConvexhull.erase(RightConvexhull.begin() + R_index);
-            }
-            else {
-                hyperplane.first = LeftConvexhull[L_index];
-                l_highest = LeftConvexhull[L_index].y;
-                LeftConvexhull.erase(LeftConvexhull.begin() + L_index);
-            }
-        }
-        mid_edge.push_back(Edge{hp.first, hp.second, A, B});
-    }
+            if(crossProduct(RightEdge[r_index].end, hyp.first, hyp.second) < 0)
+                RightEdge[r_index].end = r;
+            else
+                RightEdge[r_index].start = r;
 
-    while(RightConvexhull.size()) {
-        Point last_p = {0, 0};
-        int index = -1;
-        pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
-        Point A = hyperplane.first, B = hyperplane.second;
-        Swap(hp.first, hp.second);
-        if(mid_edge.size()) hp.second = prev(mid_edge.end()) -> start;
+            if(crossProduct(LeftEdge[l_index].end, hyp.first, hyp.second) > 0)
+                LeftEdge[l_index].end = l;
+            else
+                LeftEdge[l_index].start = l;
 
-        for(int i = 0; i < RightConvexhull_Edge.size(); i++) {
-            if(RightConvexhull_Edge[i].B == hyperplane.second || RightConvexhull_Edge[i].A == hyperplane.second ||
-               RightConvexhull_Edge[i].B == hyperplane.first || RightConvexhull_Edge[i].A == hyperplane.first) {
-                Point intersect = IntersectionPoint(RightConvexhull_Edge[i], Edge{hp.first, hp.second});
-                if(intersect.x < 0 || intersect.x > 600 || intersect.y < 0 || intersect.y > 600) {
-                    temp.push_back(RightConvexhull_Edge[i]);
-                    RightConvexhull_Edge.erase(RightConvexhull_Edge.begin() + i);
-                    continue;
-                }
-                else {
-                    if(intersect.y > last_p.y && intersect.y < hp.second.y) {
-                        last_p = intersect;
-                        index = i;
+            temp.push_back(RightEdge[r_index]);
+            temp.push_back(LeftEdge[l_index]);
+            RightEdge.erase(RightEdge.begin() + r_index);
+            LeftEdge.erase(LeftEdge.begin() + l_index);
+            bool b = 0;
+            for(int i = 0; i < RightConvexhull.size() && !b; i++) {
+                for(int j = 0; j < LeftConvexhull.size(); j++) {
+                    pair<Point, Point> t = calculatePerpendicularBisector(LeftConvexhull[j], RightConvexhull[i]);
+                    Point p = IntersectionPoint(Edge{hyp.first, hyp.second}, Edge{t.first, t.second});
+                    if(p == r || p.x == -12345 && p.y == -12345) {
+                        hyperplane.first = LeftConvexhull[j];
+                        LeftConvexhull.erase(LeftConvexhull.begin() + j);
+                        hyperplane.second = RightConvexhull[i];
+                        RightConvexhull.erase(RightConvexhull.begin() + i);
+                        b = 1;
+                        break;
                     }
                 }
+
             }
         }
-        if(index != -1) {
-            hp.first = last_p;
-            Point t;
-            if(RightConvexhull_Edge[index].end.y == RightConvexhull_Edge[index].start.y) {
-                if(RightConvexhull_Edge[index].end.x < RightConvexhull_Edge[index].start.x) {
-                    t = RightConvexhull_Edge[index].start;
-                    RightConvexhull_Edge[index].start = last_p;
-                }
-                else {
-                    t = RightConvexhull_Edge[index].end;
-                    RightConvexhull_Edge[index].end = last_p;
-                }
-            }
-            else if(crossProduct(RightConvexhull_Edge[index].end, hp.first, hp.second) < 0) {
-                t = RightConvexhull_Edge[index].end;
-                RightConvexhull_Edge[index].end = last_p;
-            }
-            else {
-                t = RightConvexhull_Edge[index].start;
-                RightConvexhull_Edge[index].start = last_p;
-            }
-
-            temp.push_back(RightConvexhull_Edge[index]);
-            RightConvexhull_Edge.erase(RightConvexhull_Edge.begin() + index);
-
-            for(int i = 0; i < RightConvexhull_Edge.size(); i++) {
-                if((RightConvexhull_Edge[i].start == t || RightConvexhull_Edge[i].end == t) &&
-                   (RightConvexhull_Edge[i].start.x > t.x || RightConvexhull_Edge[i].end.x > t.x)) {
-                    RightConvexhull_Edge.erase(RightConvexhull_Edge.begin() + i);
-                    break;
-                }
-            }
-
-            for(int i = 0; i < RightConvexhull.size(); i++) {
-                pair<Point, Point> p = calculatePerpendicularBisector(hyperplane.first, RightConvexhull[i]);
-                Swap(p.first, p.second);
-                if(isOnSegment(p.first, p.second, last_p) && RightConvexhull[i].y < r_highest) {
-                    r_highest = hyperplane.second.y;
-                    hyperplane.second = RightConvexhull[i];
-                    RightConvexhull.erase(RightConvexhull.begin()+i);
-                    break;
-                }
+        cout << hyperplane.first.x << ' ' << hyperplane.first.y << endl;
+        cout << hyperplane.second.x << ' ' << hyperplane.second.y << endl;
+        for(int i = 0; i < LeftConvexhull.size(); i++) {
+            if(LeftConvexhull[i].y > hyperplane.first.y) {
+                LeftConvexhull.erase(LeftConvexhull.begin() + i--);
             }
         }
-        else if(index != -1) {
-            double R_dis = 600*600, R_index = -1;
-            for(int i = 0; i < RightConvexhull.size(); i++) {
-                if(pow(hyperplane.first.x - RightConvexhull[i].x, 2) + pow(hyperplane.first.y - RightConvexhull[i].y, 2) < R_dis &&
-                    RightConvexhull[i].y < r_highest) {
-                    R_dis = pow(hyperplane.first.x - RightConvexhull[i].x, 2) + pow(hyperplane.first.y - RightConvexhull[i].y, 2);
-                    R_index = i;
-                }
-            }
-            if(R_index != -1) {
-                r_highest = RightConvexhull[R_index].y;
-                hyperplane.second = RightConvexhull[R_index];
-                RightConvexhull.erase(RightConvexhull.begin() + R_index);
+        for(int i = 0; i < RightConvexhull.size(); i++) {
+            if(RightConvexhull[i].y > hyperplane.second.y) {
+                RightConvexhull.erase(RightConvexhull.begin() + i--);
             }
         }
-        if(index == -1) break;
-        mid_edge.push_back(Edge{hp.first, hp.second, A, B});
+        if(no_outline) {
+            mid_edge.push_back(Edge{hyp.first, hyp.second});
+        }
     }
 
-    while(LeftConvexhull.size()) {
-        Point last_p = {0, 0};
-        int index = -1;
-        pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
-        Point A = hyperplane.first, B = hyperplane.second;
-        Swap(hp.first, hp.second);
-        if(mid_edge.size()) hp.second = prev(mid_edge.end()) -> start;
-        if(L == 0 && R == 7) {
-            cout << "hyper: " << endl;
-            cout << hyperplane.first.x << ' ' << hyperplane.first.y << endl;
-            cout << hyperplane.second.x << ' ' << hyperplane.second.y << endl;
-        }
-        for(int i = 0; i < LeftConvexhull_Edge.size(); i++) {
-            if(L == 0 && R == 7) {
-                cout << "L: " << endl;
-                cout << LeftConvexhull_Edge[i].A.x << ' ' << LeftConvexhull_Edge[i].A.y << endl;
-                cout << LeftConvexhull_Edge[i].B.x << ' ' << LeftConvexhull_Edge[i].B.y << endl;
-            }
-            if(LeftConvexhull_Edge[i].B == hyperplane.first || LeftConvexhull_Edge[i].A == hyperplane.first) {
-                if(L == 0 && R == 7) {
-                    cout << "L: " << endl;
-                    cout << LeftConvexhull_Edge[i].start.x << ' ' << LeftConvexhull_Edge[i].start.y << endl;
-                    cout << LeftConvexhull_Edge[i].end.x << ' ' << LeftConvexhull_Edge[i].end.y << endl;
-                }
-                Point intersect = IntersectionPoint(LeftConvexhull_Edge[i], Edge{hp.first, hp.second});
-                if(intersect.x < 0 || intersect.x > 600 || intersect.y < 0 || intersect.y > 600) {
-                    temp.push_back(LeftConvexhull_Edge[i]);
-                    LeftConvexhull_Edge.erase(LeftConvexhull_Edge.begin() + i);
-                    continue;
-                }
-                else {
-                    if(intersect.y > last_p.y && intersect.y < hp.second.y) {
-                        last_p = intersect;
-                        index = i;
-                    }
-                }
-            }
-        }
-        if(index != -1) {
-            hp.first = last_p;
-            Point t;
-            if(LeftConvexhull_Edge[index].end.y == LeftConvexhull_Edge[index].start.y) {
-                if(LeftConvexhull_Edge[index].end.x > LeftConvexhull_Edge[index].start.x) {
-                    t = LeftConvexhull_Edge[index].start;
-                    LeftConvexhull_Edge[index].start = last_p;
-                }
-                else {
-                    t = LeftConvexhull_Edge[index].end;
-                    LeftConvexhull_Edge[index].end = last_p;
-                }
-            }
-            else if(crossProduct(LeftConvexhull_Edge[index].start, hp.first, hp.second) > 0) {
-                t = LeftConvexhull_Edge[index].start;
-                LeftConvexhull_Edge[index].start = last_p;
-            }
-            else {
-                t = LeftConvexhull_Edge[index].end;
-                LeftConvexhull_Edge[index].end = last_p;
-            }
-            temp.push_back(LeftConvexhull_Edge[index]);
-            LeftConvexhull_Edge.erase(LeftConvexhull_Edge.begin() + index);
-
-            for(int i = 0; i < LeftConvexhull_Edge.size(); i++) {
-                if((LeftConvexhull_Edge[i].start == t || LeftConvexhull_Edge[i].end == t) &&
-                   (LeftConvexhull_Edge[i].start.x < t.x || LeftConvexhull_Edge[i].end.x < t.x)) {
-                    LeftConvexhull_Edge.erase(LeftConvexhull_Edge.begin() + i);
-                    break;
-                }
-            }
-            for(int i = 0; i < LeftConvexhull.size(); i++) {
-                pair<Point, Point> p = calculatePerpendicularBisector(LeftConvexhull[i], hyperplane.second);
-                Swap(p.first, p.second);
-                if(isOnSegment(p.first, p.second, last_p) && LeftConvexhull[i].y < l_highest) {
-                    l_highest = LeftConvexhull[i].y;
-                    hyperplane.first = LeftConvexhull[i];
-                    LeftConvexhull.erase(LeftConvexhull.begin()+i);
-                    break;
-                }
-            }
-        }
-        else if(index != -1) {
-            double L_dis = 600*600, L_index = -1;
-            for(int i = 0; i < LeftConvexhull.size(); i++) {
-                if(pow(hyperplane.second.x - LeftConvexhull[i].x, 2) + pow(hyperplane.second.y - LeftConvexhull[i].y, 2) < L_dis &&
-                   LeftConvexhull[i].y < l_highest) {
-                    L_dis = pow(hyperplane.second.x - LeftConvexhull[i].x, 2) + pow(hyperplane.second.y - LeftConvexhull[i].y, 2);
-                    L_index = i;
-                }
-            }
-            if(L_index != -1) {
-                l_highest = LeftConvexhull[L_index].y;
-                hyperplane.first = LeftConvexhull[L_index];
-                LeftConvexhull.erase(LeftConvexhull.begin() + L_index);
-            }
-        }
-        if(index == -1) break;
-        mid_edge.push_back(Edge{hp.first, hp.second, A, B});
+    pair<Point, Point> hyp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
+    Swap(hyp.first, hyp.second);
+    if(mid_edge.size()) {
+        hyp.second = prev(mid_edge.end()) -> start;
     }
 
-    if(1) {
-        Point last_p = {0, 0};
-        pair<Point, Point> hp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
-        Swap(hp.first, hp.second);
-        if(mid_edge.size()) hp.second = prev(mid_edge.end()) -> start;
-        mid_edge.push_back(Edge{hp.first, hp.second, hyperplane.first, hyperplane.second});
+    for(int i = 0; i < temp.size(); i++) {
+        Point intersect = IntersectionPoint(Edge{hyp.first, hyp.second}, temp[i]);
+        cout << isOnSegment(hyp.first, hyp.second, intersect) << endl;
+        if(isOnSegment(hyp.first, hyp.second, intersect) && intersect != hyp.second) {
+            hyp.first = intersect;
+        }
     }
+    mid_edge.push_back(Edge{hyp.first, hyp.second});
+
+    cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
 
     outfile.open("hyperplane/hyperplane" + to_string(file_num++) + ".txt");
     for (const auto& edge : mid_edge) {
@@ -920,8 +784,8 @@ vector<Edge> recursiveVoronoi(int L, int R) {
 
     voronoi.insert(voronoi.end(), RightEdge.begin(), RightEdge.end());
     voronoi.insert(voronoi.end(), LeftEdge.begin(), LeftEdge.end());
-    voronoi.insert(voronoi.end(), RightConvexhull_Edge.begin(), RightConvexhull_Edge.end());
-    voronoi.insert(voronoi.end(), LeftConvexhull_Edge.begin(), LeftConvexhull_Edge.end());
+    //voronoi.insert(voronoi.end(), RightConvexhull_Edge.begin(), RightConvexhull_Edge.end());
+    //voronoi.insert(voronoi.end(), LeftConvexhull_Edge.begin(), LeftConvexhull_Edge.end());
     voronoi.insert(voronoi.end(), temp.begin(), temp.end());
     voronoi.insert(voronoi.end(), mid_edge.begin(), mid_edge.end());
     return voronoi;

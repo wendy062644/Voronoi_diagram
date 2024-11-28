@@ -55,6 +55,7 @@ def draw_voronoi():
     
     if result.returncode != 0:
         messagebox.showerror("Error", "Voronoi計算失敗。")
+        clear_canvas()
         return
 
     # 處理 C++ 程序的標準輸出 (假設輸出為 "x y" 格式的點)
@@ -162,10 +163,12 @@ def execute_current_points():
     """執行當前畫布上的點並生成Voronoi圖。"""
     global current_case_index, test_cases
     canvas.delete("all")
-    draw_voronoi()    
+    
     if len(points) < 2:
         messagebox.showwarning("Warning", "需要至少兩個點來繪製Voronoi圖。")
         return
+    
+    draw_voronoi()
     
     test_cases = []
     test_cases.append(points)
