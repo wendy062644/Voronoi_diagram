@@ -617,12 +617,17 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     vector<Point> RightConvexhull = ConvexHull_Point(RightEdge);
     vector<Point> LeftConvexhull = ConvexHull_Point(LeftEdge);
     vector<Point> R_Points, L_Points;
+
     ofstream outfile("convexhull/convexhull" + to_string(file_num) + ".txt");
     for (const auto& edge : RightConvexhull) {
+        if(edge.x == 0 && edge.y == 0)
+            cout << L << ' ' << R << endl;
         outfile << "R " << edge.x << " " << edge.y << "\n";
     }
     outfile << "\n";
     for (const auto& edge : LeftConvexhull) {
+        if(edge.x == 0 && edge.y == 0)
+            cout << L << ' ' << R << endl;
         outfile << "L " << edge.x << " " << edge.y << "\n";
     }
     outfile << "\n";
@@ -631,6 +636,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     vector<Edge> mid_edge, temp;
 
     pair<Point, Point> hyperplane = HyperPlane(LeftConvexhull, RightConvexhull);
+    Point A = hyperplane.first, B = hyperplane.second;
 
     L_Points.push_back(hyperplane.first);
     R_Points.push_back(hyperplane.second);
@@ -638,7 +644,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     RightConvexhull.erase(find(RightConvexhull.begin(), RightConvexhull.end(), hyperplane.second));
 
     while(LeftConvexhull.size() || RightConvexhull.size()) {
-        cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
+        //cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
         pair<Point, Point> hyp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
         Swap(hyp.first, hyp.second);
         if(mid_edge.size()) {
@@ -673,10 +679,12 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(r.y == -1 && l.y == -1) break;
         if(r.y > l.y) {
             if(r.y < 600) {
-                if(crossProduct(RightEdge[r_index].end, hyp.first, hyp.second) < 0)
+                if(crossProduct(RightEdge[r_index].end, hyp.first, hyp.second) < 0) {
                     RightEdge[r_index].end = r;
-                else
+                }
+                else {
                     RightEdge[r_index].start = r;
+                }
                 hyp.first = r;
                 no_outline = 1;
             }
@@ -695,10 +703,12 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         }
         else if(l.y > r.y) {
             if(l.y < 600) {
-                if(crossProduct(LeftEdge[l_index].end, hyp.first, hyp.second) > 0)
+                if(crossProduct(LeftEdge[l_index].end, hyp.first, hyp.second) > 0) {
                     LeftEdge[l_index].end = l;
-                else
+                }
+                else {
                     LeftEdge[l_index].start = l;
+                }
                 hyp.first = l;
                 no_outline = 1;
             }
@@ -762,7 +772,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
             }
         }
         if(no_outline) {
-            mid_edge.push_back(Edge{hyp.first, hyp.second});
+            mid_edge.push_back(Edge{hyp.first, hyp.second, A, B});
         }
     }
 
@@ -776,7 +786,6 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         Point intersect = IntersectionPoint(Edge{hyp.first, hyp.second}, temp[i]);
         if(isOnSegment(hyp.first, hyp.second, intersect) && isOnSegment(temp[i].start, temp[i].end, intersect)
            && fabs(intersect.x - hyp.second.x) > 0.01 && intersect.y <= hyp.second.y) {
-            cout << intersect.x << ' ' << intersect.y << endl;
             hyp.first = intersect;
             if(temp[i].start.y > temp[i].end.y)
                 temp[i].end = intersect;
@@ -784,16 +793,15 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                 temp[i].start = intersect;
         }
     }
-    mid_edge.push_back(Edge{hyp.first, hyp.second});
+    mid_edge.push_back(Edge{hyp.first, hyp.second, hyperplane.first, hyperplane.second});
 
     for(int i = 0; i < R_Points.size(); i++) {
         hyp = calculatePerpendicularBisector(hyperplane.first, R_Points[i]);
         Swap(hyp.first, hyp.second);
         Point intersect = IntersectionPoint(Edge{hyp.first, hyp.second}, *prev(mid_edge.end()));
         if(intersect == prev(mid_edge.end()) -> start) {
-            cout << intersect.x << ' ' << intersect.y << endl;
             hyp.second = intersect;
-            mid_edge.push_back(Edge{hyp.first, hyp.second});
+            mid_edge.push_back(Edge{hyp.first, hyp.second, hyperplane.first, R_Points[i]});
             break;
         }
     }
@@ -803,9 +811,8 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         Swap(hyp.first, hyp.second);
         Point intersect = IntersectionPoint(Edge{hyp.first, hyp.second}, *prev(mid_edge.end()));
         if(intersect == prev(mid_edge.end()) -> start) {
-            cout << intersect.x << ' ' << intersect.y << endl;
             hyp.second = intersect;
-            mid_edge.push_back(Edge{hyp.first, hyp.second});
+            mid_edge.push_back(Edge{hyp.first, hyp.second, L_Points[i], hyperplane.second});
             break;
         }
     }
