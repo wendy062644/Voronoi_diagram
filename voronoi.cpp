@@ -721,18 +721,18 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                 }
                 hyp.first = r;
                 no_outline = 1;
-                for(int i = 0; i < RightEdge.size(); i++) {
-                    if(RightEdge[i].start == P && crossProduct(RightEdge[i].end, hyp.first, hyp.second) < 0) {
-                        RightEdge.erase(RightEdge.begin() + i);
-                        if(i < r_index) r_index--;
-                        break;
-                    }
-                    if(RightEdge[i].end == P && crossProduct(RightEdge[i].start, hyp.first, hyp.second) < 0) {
-                        RightEdge.erase(RightEdge.begin() + i);
-                        if(i < r_index) r_index--;
-                        break;
-                    }
-                }
+//                for(int i = 0; i < RightEdge.size(); i++) {
+//                    if(RightEdge[i].start == P && crossProduct(RightEdge[i].end, hyp.first, hyp.second) < 0) {
+//                        RightEdge.erase(RightEdge.begin() + i);
+//                        if(i < r_index) r_index--;
+//                        break;
+//                    }
+//                    if(RightEdge[i].end == P && crossProduct(RightEdge[i].start, hyp.first, hyp.second) < 0) {
+//                        RightEdge.erase(RightEdge.begin() + i);
+//                        if(i < r_index) r_index--;
+//                        break;
+//                    }
+//                }
             }
             temp.push_back(RightEdge[r_index]);
             RightEdge.erase(RightEdge.begin() + r_index);
@@ -757,18 +757,18 @@ vector<Edge> recursiveVoronoi(int L, int R) {
                     P = LeftEdge[l_index].end;
                     LeftEdge[l_index].end = l;
                 }
-                for(int i = 0; i < LeftEdge.size(); i++) {
-                    if(LeftEdge[i].start == P && crossProduct(LeftEdge[i].end, hyp.first, hyp.second) > 0) {
-                        LeftEdge.erase(LeftEdge.begin() + i);
-                        if(i < l_index) l_index--;
-                        break;
-                    }
-                    if(LeftEdge[i].end == P && crossProduct(LeftEdge[i].start, hyp.first, hyp.second) > 0) {
-                        LeftEdge.erase(LeftEdge.begin() + i);
-                        if(i < l_index) l_index--;
-                        break;
-                    }
-                }
+//                for(int i = 0; i < LeftEdge.size(); i++) {
+//                    if(LeftEdge[i].start == P && LeftEdge[i].end.y > P.y && crossProduct(LeftEdge[i].end, hyp.first, hyp.second) > 0) {
+//                        LeftEdge.erase(LeftEdge.begin() + i);
+//                        if(i < l_index) l_index--;
+//                        break;
+//                    }
+//                    if(LeftEdge[i].end == P && LeftEdge[i].start.y > P.y && crossProduct(LeftEdge[i].start, hyp.first, hyp.second) > 0) {
+//                        LeftEdge.erase(LeftEdge.begin() + i);
+//                        if(i < l_index) l_index--;
+//                        break;
+//                    }
+//                }
                 hyp.first = l;
                 no_outline = 1;
             }
@@ -909,6 +909,18 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     voronoi.insert(voronoi.end(), LeftEdge.begin(), LeftEdge.end());
     voronoi.insert(voronoi.end(), temp.begin(), temp.end());
     voronoi.insert(voronoi.end(), mid_edge.begin(), mid_edge.end());
+
+    for(int i = 0; i < voronoi.size(); i++) {
+        bool b = 0;
+        for(int j = 0; j < voronoi.size(); j++) {
+            if(i == j) continue;
+            if(voronoi[i].start == voronoi[j].start || voronoi[i].start == voronoi[j].end ||
+               voronoi[i].end == voronoi[j].start || voronoi[i].end == voronoi[j].end)
+                b = 1;
+        }
+        if(b == 0) voronoi.erase(voronoi.begin() + i--);
+    }
+
     return voronoi;
 }
 
