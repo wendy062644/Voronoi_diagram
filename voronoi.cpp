@@ -119,27 +119,60 @@ Point calculateIntersection(double slope1, Point mid1, double slope2, Point mid2
     return {x, y};
 }
 
-// 判斷點是否在基準線的左側
-double crossProduct(const Point& p, const Point& a, const Point& b) {
-    if (a.y == b.y) { // 水平
-        if (p.y > a.y) {
-            return -1;
-        } else if (p.y < a.y) {
-            return 1;
-        } else {
-            return 0;
-        }
-    } else if (a.x == b.x) { // 垂直
-        if (p.x > a.x) {
-            return -1;
-        } else if (p.x < a.x) {
-            return 1;
-        } else {
-            return 0;
-        }
+pair<Point, Point> extendLine(const Point& a, const Point& b) {
+    double m;
+    if (b.x != a.x) {
+        m = (b.y - a.y) / (b.x - a.x);
+    } else {
+        m = numeric_limits<double>::infinity();
     }
-    return (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+
+    Point newA = a;
+    Point newB = b;
+
+    if (b.x != a.x) {
+        newA.x = -10000;
+        newA.y = a.y + m * (newA.x - a.x);
+    } else { // 垂直
+        newA.y = -10000;
+    }
+
+    if (b.x != a.x) {
+        newB.x = 10000;
+        newB.y = a.y + m * (newB.x - a.x);
+    } else { // 垂直
+        newB.y = 10000;
+    }
+
+    return {newA, newB};
 }
+
+double crossProduct(const Point& p, const Point& a, const Point& b) {
+    // 水平
+    if (a.y == b.y) {
+        if (p.y < a.y) return 1;
+        if (p.y > a.y) return -1;
+        return 0;
+    }
+
+    // 垂直
+    if (a.x == b.x) {
+        if (p.x < a.x) return 1;
+        if (p.x > a.x) return -1;
+        return 0;
+    }
+
+    double computedX = (a.x - b.x) / (a.y - b.y) * (p.y - b.y) + b.x;
+
+    if (p.x < computedX) {
+        return 1;
+    } else if (p.x > computedX) {
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
 
 // 判斷點 P 是否在線段 AB 上
 bool isOnSegment(const Point& A, const Point& B, const Point& P) {
@@ -636,7 +669,7 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     vector<Edge> mid_edge, temp;
 
     pair<Point, Point> hyperplane = HyperPlane(LeftConvexhull, RightConvexhull);
-    Point A = hyperplane.first, B = hyperplane.second;
+    Point A = hyperplane.first, B = hyperplane.second, P;
 
     L_Points.push_back(hyperplane.first);
     R_Points.push_back(hyperplane.second);
@@ -644,7 +677,6 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     RightConvexhull.erase(find(RightConvexhull.begin(), RightConvexhull.end(), hyperplane.second));
 
     while(LeftConvexhull.size() || RightConvexhull.size()) {
-        //cout << LeftConvexhull.size() << ' ' << RightConvexhull.size() << endl;
         pair<Point, Point> hyp = calculatePerpendicularBisector(hyperplane.first, hyperplane.second);
         Swap(hyp.first, hyp.second);
         if(mid_edge.size()) {
@@ -680,13 +712,27 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(r.y > l.y) {
             if(r.y < 600) {
                 if(crossProduct(RightEdge[r_index].end, hyp.first, hyp.second) < 0) {
+                    P = RightEdge[r_index].end;
                     RightEdge[r_index].end = r;
                 }
                 else {
+                    P = RightEdge[r_index].start;
                     RightEdge[r_index].start = r;
                 }
                 hyp.first = r;
                 no_outline = 1;
+                for(int i = 0; i < RightEdge.size(); i++) {
+                    if(RightEdge[i].start == P && crossProduct(RightEdge[i].end, hyp.first, hyp.second) < 0) {
+                        RightEdge.erase(RightEdge.begin() + i);
+                        if(i < r_index) r_index--;
+                        break;
+                    }
+                    if(RightEdge[i].end == P && crossProduct(RightEdge[i].start, hyp.first, hyp.second) < 0) {
+                        RightEdge.erase(RightEdge.begin() + i);
+                        if(i < r_index) r_index--;
+                        break;
+                    }
+                }
             }
             temp.push_back(RightEdge[r_index]);
             RightEdge.erase(RightEdge.begin() + r_index);
@@ -703,11 +749,25 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         }
         else if(l.y > r.y) {
             if(l.y < 600) {
-                if(crossProduct(LeftEdge[l_index].end, hyp.first, hyp.second) > 0) {
-                    LeftEdge[l_index].end = l;
+                if(crossProduct(LeftEdge[l_index].end, hyp.first, hyp.second) < 0) {
+                    P = LeftEdge[l_index].start;
+                    LeftEdge[l_index].start = l;
                 }
                 else {
-                    LeftEdge[l_index].start = l;
+                    P = LeftEdge[l_index].end;
+                    LeftEdge[l_index].end = l;
+                }
+                for(int i = 0; i < LeftEdge.size(); i++) {
+                    if(LeftEdge[i].start == P && crossProduct(LeftEdge[i].end, hyp.first, hyp.second) > 0) {
+                        LeftEdge.erase(LeftEdge.begin() + i);
+                        if(i < l_index) l_index--;
+                        break;
+                    }
+                    if(LeftEdge[i].end == P && crossProduct(LeftEdge[i].start, hyp.first, hyp.second) > 0) {
+                        LeftEdge.erase(LeftEdge.begin() + i);
+                        if(i < l_index) l_index--;
+                        break;
+                    }
                 }
                 hyp.first = l;
                 no_outline = 1;
@@ -726,12 +786,12 @@ vector<Edge> recursiveVoronoi(int L, int R) {
             }
         }
         else {
-            if(crossProduct(RightEdge[r_index].end, hyp.first, hyp.second) < 0)
+            if(crossProduct(RightEdge[r_index].end, hyp.first, hyp.second) > 0)
                 RightEdge[r_index].end = r;
             else
                 RightEdge[r_index].start = r;
 
-            if(crossProduct(LeftEdge[l_index].end, hyp.first, hyp.second) > 0)
+            if(crossProduct(LeftEdge[l_index].end, hyp.first, hyp.second) < 0)
                 LeftEdge[l_index].end = l;
             else
                 LeftEdge[l_index].start = l;
@@ -787,10 +847,24 @@ vector<Edge> recursiveVoronoi(int L, int R) {
         if(isOnSegment(hyp.first, hyp.second, intersect) && isOnSegment(temp[i].start, temp[i].end, intersect)
            && fabs(intersect.x - hyp.second.x) > 0.01 && intersect.y <= hyp.second.y) {
             hyp.first = intersect;
-            if(temp[i].start.y > temp[i].end.y)
-                temp[i].end = intersect;
-            else
-                temp[i].start = intersect;
+            if(intersect.x >= 0 && intersect.x <= 600 && intersect.y >= 0 && intersect.y <= 600) {
+                if(crossProduct(temp[i].B, hyp.first, hyp.second) > 0) {
+                    if(crossProduct(temp[i].end, hyp.first, hyp.second) > 0) {
+                        temp[i].start = intersect;
+                    }
+                    else {
+                        temp[i].end = intersect;
+                    }
+                }
+                else {
+                    if(crossProduct(temp[i].end, hyp.first, hyp.second) < 0) {
+                        temp[i].start = intersect;
+                    }
+                    else {
+                        temp[i].end = intersect;
+                    }
+                }
+            }
         }
     }
     mid_edge.push_back(Edge{hyp.first, hyp.second, hyperplane.first, hyperplane.second});
@@ -798,6 +872,9 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     for(int i = 0; i < R_Points.size(); i++) {
         hyp = calculatePerpendicularBisector(hyperplane.first, R_Points[i]);
         Swap(hyp.first, hyp.second);
+        if(mid_edge.size()) {
+            hyp.second = prev(mid_edge.end()) -> start;
+        }
         Point intersect = IntersectionPoint(Edge{hyp.first, hyp.second}, *prev(mid_edge.end()));
         if(intersect == prev(mid_edge.end()) -> start) {
             hyp.second = intersect;
@@ -809,6 +886,9 @@ vector<Edge> recursiveVoronoi(int L, int R) {
     for(int i = 0; i < L_Points.size(); i++) {
         hyp = calculatePerpendicularBisector(L_Points[i], hyperplane.second);
         Swap(hyp.first, hyp.second);
+        if(mid_edge.size()) {
+            hyp.second = prev(mid_edge.end()) -> start;
+        }
         Point intersect = IntersectionPoint(Edge{hyp.first, hyp.second}, *prev(mid_edge.end()));
         if(intersect == prev(mid_edge.end()) -> start) {
             hyp.second = intersect;
