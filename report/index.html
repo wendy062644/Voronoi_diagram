@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voronoi Diagram 報告</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- 第一頁 -->
+    <div class="intro-page" id="introPage">
+        <h1>Voronoi Diagram </h1>
+        <h2>divide and conquer</h2>
+        <br>
+        <div class="info">
+            <p>系級：<span class="highlight">資工 115</span></p>
+            <p>姓名：<span class="highlight">陳育霖</span></p>
+            <p>學號：<span class="highlight">B113040052</span></p>
+        </div>
+        <br>
+        <div class="scroll-indicator">下滑進入內容 ☟</div>
+    </div>
+
+    <!-- 主內容 -->
+    <main id="mainContent" class="hidden">
+        <section>
+            <h2>軟體規格書</h2>
+            <ul>
+                <li>
+                    <h3>輸出與輸入（資料）規格</h3>
+                    <strong style="font-size: 1.4em;">輸入：</strong>
+                    <ul class="nested-list">
+                        <li>畫布上任意點擊，畫布大小為 600 x 600</li>
+                        <li>讀入「輸入文字檔」，《詳細格式》</li>
+                        <li>讀入「輸出文字檔」，直接在畫布繪出圖形</li>
+                    </ul>
+
+                    <strong style="font-size: 1.4em;">輸出：</strong>
+                    <p>按下 Save，輸出「輸出文字檔」。輸出文字檔格式如下：</p>
+                    <ul class="nested-list">
+                        <li>輸入的座標點：<code>P x y</code> // 每個點佔一行，兩整數 x, y 為座標。</li>
+                        <li>線段：<code>E x1 y1 x2 y2</code> // (x1, y1) 為起點，(x2, y2) 為終點，其中 <code>x1≦x2</code> 或
+                            <code>x1=x2, y1≦y2</code>
+                        </li>
+                        <li>座標點排列在前半段，線段排列在後半段。</li>
+                        <li>座標點以 lexical order 順序排列（即先排序第一維座標，若相同，則再排序第二維座標）；線段亦以 lexical order 順序排列。</li>
+                    </ul>
+                    <p><strong style="font-size: 1.4em;">輸出文字檔案範例：</strong></p>
+                    <ul class="nested-list">
+                        <pre class="output-example">
+P 100 100
+P 100 200
+P 200 100
+P 200 200
+E 0 150 150 150
+E 150 0 150 150
+E 150 150 150 600
+E 150 150 600 150</pre>
+                    </ul>
+                </li>
+
+                <li>
+                    <h3>功能規格與介面規格</h3>
+                </li>
+                <li>
+                    <h3>軟體測試規劃書</h3>
+                </li>
+                <li>
+                    <h3>其他有利於軟體開發之規格</h3>
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>軟體說明</h2>
+            <p>為軟體安裝與使用之說明，請提供安裝與使用時需特別注意之要點。</p>
+        </section>
+
+        <section>
+            <h2>程式設計</h2>
+            <p>描述演算法、使用的資料結構、需要注意的細節或改良之處。</p>
+        </section>
+
+        <section>
+            <h2>軟體測試與實驗結果</h2>
+            <ul>
+                <li>測試環境：硬體系統、作業系統、編譯器名稱及版本</li>
+                <li>測試數據</li>
+                <li>範例數據及極限數據</li>
+                <li>無法執行之情況及解決方式</li>
+                <li>測試輸入檔與輸出檔</li>
+            </ul>
+
+            <!-- 圖片與描述部分 -->
+            <div class="test-results">
+                <div class="image-container">
+                    <img src="image/1.png" alt="測試結果圖片1">
+                    <p class="image-caption">圖1：測試環境的硬體規格示意圖</p>
+                </div>
+                <div class="image-container">
+                    <img src="image/2.png" alt="測試結果圖片2">
+                    <p class="image-caption">圖2：系統運行時的測試數據圖表</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>結論與心得</h2>
+            <p>說明所得結論、可以改良之處與心得等。</p>
+        </section>
+
+        <section>
+            <h2>附錄</h2>
+            <ul>
+                <li><a href="assets/source_code.zip" download>程式原始碼合併檔</a></li>
+                <li><a href="assets/input_sample.txt" download>測試輸入檔</a></li>
+                <li><a href="assets/output_sample.txt" download>測試輸出檔</a></li>
+            </ul>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
