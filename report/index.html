@@ -18,6 +18,7 @@
             <p>系級：<span class="highlight">資工 115</span></p>
             <p>姓名：<span class="highlight">陳育霖</span></p>
             <p>學號：<span class="highlight">B113040052</span></p>
+            <p>程式語言：<span class="highlight">C++ / Python</span></p>
         </div>
         <br>
         <div class="scroll-indicator">下滑進入內容 ☟</div>
@@ -32,20 +33,21 @@
                     <h3>輸出與輸入（資料）規格</h3>
                     <strong style="font-size: 1.4em;">輸入：</strong>
                     <ul class="nested-list">
-                        <li>畫布上任意點擊，畫布大小為 600 x 600</li>
-                        <li>讀入「輸入文字檔」，《詳細格式》</li>
-                        <li>讀入「輸出文字檔」，直接在畫布繪出圖形</li>
+                        <li>畫布上任意點擊，畫布大小為 602 x 602</li>
+                        <li>輸入檔.txt，包含多筆測資與註解，<a href="https://wendy062644.github.io/other/vd_testdata.in"
+                                target="_blank">輸入檔案範例</a></li>
+                        <li>輸出檔.txt，直接在畫布中繪製線與點，格式如下方<class style="color: red;">輸出檔案範例</class>
+                        </li>
                     </ul>
 
                     <strong style="font-size: 1.4em;">輸出：</strong>
-                    <p>按下 Save，輸出「輸出文字檔」。輸出文字檔格式如下：</p>
+                    <p>輸出檔案格式如下：</p>
                     <ul class="nested-list">
-                        <li>輸入的座標點：<code>P x y</code> // 每個點佔一行，兩整數 x, y 為座標。</li>
-                        <li>線段：<code>E x1 y1 x2 y2</code> // (x1, y1) 為起點，(x2, y2) 為終點，其中 <code>x1≦x2</code> 或
-                            <code>x1=x2, y1≦y2</code>
+                        <li>點：<code>P X Y</code> // 每個點佔一行，兩整數 x, y 為座標</li>
+                        <li>線段：<code>E X1 Y1 X2 Y2</code> // (X1, Y1) 為起點，(X2, Y2) 為終點，其中 <code>X1≦Y2</code> 或
+                            <code>X1=X2, Y1≦Y2</code>
                         </li>
-                        <li>座標點排列在前半段，線段排列在後半段。</li>
-                        <li>座標點以 lexical order 順序排列（即先排序第一維座標，若相同，則再排序第二維座標）；線段亦以 lexical order 順序排列。</li>
+                        <li>點座標在前半段，線段在後半段，且以座標用字典序(lexical order)排序</li>
                     </ul>
                     <p><strong style="font-size: 1.4em;">輸出文字檔案範例：</strong></p>
                     <ul class="nested-list">
@@ -63,47 +65,319 @@ E 150 150 600 150</pre>
 
                 <li>
                     <h3>功能規格與介面規格</h3>
+                    <strong style="font-size: 1.4em;">操作介面：</strong>
+                    <div class="test-results">
+                        <div class="image-container">
+                            <img src="image/1.png" alt="測試結果圖片1">
+                            <p class="image-caption">圖1&emsp;初始狀況</p>
+                        </div>
+                        <div class="image-container">
+                            <img src="image/2.png" alt="測試結果圖片2">
+                            <p class="image-caption">圖2&emsp;計算結果</p>
+                        </div>
+                    </div>
+                    <strong style="font-size: 1.4em;">按鈕功能</strong>
+                    <ul class="nested-list">
+                        <li>Clear Canvas：清除畫布上所有點與線段</li>
+                        <li>Load Points from File：讀取輸入文字檔</li>
+                        <li>Execute Current Points：計算當下畫布上的點</li>
+                        <li>Load Output：讀取輸出文字檔</li>
+                        <li>Prev Test Case：顯示上一筆測資&emsp;&emsp;Next Test Case：顯示下一筆測資</li>
+                        <li>Save Output：輸出「輸出文字檔」</li>
+                        <li>Prev Step：合併步驟中的上一步&emsp;&emsp;Next Step：合併步驟中的下一步</li>
+                    </ul>
                 </li>
                 <li>
                     <h3>軟體測試規劃書</h3>
-                </li>
-                <li>
-                    <h3>其他有利於軟體開發之規格</h3>
+                    <p>1 點：不做任何動作</p>
+                    <p>2 點：找兩點的垂直平分線</p>
+                    <p>3 點：找三點的外心，並以外心為為起點，往外畫出三條垂直平分線</p>
+                    <p>4～6 點：Divide 及 Merge 一次</p>
+                    <p>7～9 點：Divide 及 Merge 兩次</p>
+                    <p>大於 9 點：Divide 及 Merge 三次 以上</p>
                 </li>
             </ul>
         </section>
 
         <section>
             <h2>軟體說明</h2>
-            <p>為軟體安裝與使用之說明，請提供安裝與使用時需特別注意之要點。</p>
+            <ul>
+                <li>
+                    <h3>軟體安裝</h3>
+                    <ul class="nested-list">
+                        <li>1. 下載程式壓縮檔</li>
+                        <li>2. 解壓縮後，點擊「dist」資料夾 後再點擊「index」資料夾</li>
+                        <li>3. 點擊「index.exe」執行檔</li>
+                        <p style="color: red;">注意：勿移動/修改/刪除其他附加文件或檔案</p>
+                    </ul>
+                </li>
+                <li>
+                    <h3>使用說明</h3>
+                    <strong style="font-size: 1.4em;">滑鼠點擊畫布</strong>
+                    <div class="test-results">
+                        <div class="image-container">
+                            <img src="image/3.png" alt="測試結果圖片1">
+                            <p class="image-caption">圖3&emsp;點擊畫布</p>
+                        </div>
+                        <div class="image-container">
+                            <img src="image/4.png" alt="測試結果圖片2">
+                            <p class="image-caption">圖4&emsp;計算Voronoi Diagram</p>
+                        </div>
+                    </div>
+                    <strong style="font-size: 1.4em;">讀取 點座標檔案</strong>
+                    <div class="test-results">
+                        <div class="image-container">
+                            <img src="image/5.png" alt="測試結果圖片1">
+                            <p class="image-caption">圖5&emsp;讀取點座標</p>
+                        </div>
+                        <div class="image-container">
+                            <img src="image/6.png" alt="測試結果圖片2">
+                            <p class="image-caption">圖6&emsp;自動計算Voronoi Diagram</p>
+                        </div>
+                    </div>
+                    <strong style="font-size: 1.4em;">讀取 輸出文字檔</strong>
+                    <div class="test-results">
+                        <div class="image-container">
+                            <img src="image/7.png" alt="測試結果圖片1">
+                            <p class="image-caption">圖7&emsp;讀取輸出檔</p>
+                        </div>
+                        <div class="image-container">
+                            <img src="image/8.png" alt="測試結果圖片2">
+                            <p class="image-caption">圖8&emsp;繪製點與線</p>
+                        </div>
+                    </div>
+                    <strong style="font-size: 1.4em;">多筆測資</strong>
+                    <div class="test-results">
+                        <div class="image-container">
+                            <img src="image/9.png" alt="測試結果圖片1">
+                            <p class="image-caption">圖9&emsp;第 12/20 筆測資</p>
+                        </div>
+                        <div class="image-container">
+                            <img src="image/10.png" alt="測試結果圖片2">
+                            <p class="image-caption">圖10&emsp;第 13/20 筆測資</p>
+                        </div>
+                    </div>
+                    <strong style="font-size: 1.4em;">Step by Step</strong>
+                    <div class="test-results">
+                        <div class="image-container">
+                            <img src="image/11.png" alt="測試結果圖片1">
+                            <p class="image-caption">圖11&emsp;第一步(merge前)</p>
+                        </div>
+                        <div class="image-container">
+                            <img src="image/12.png" alt="測試結果圖片2">
+                            <p class="image-caption">圖12&emsp;第二步(merge後)</p>
+                        </div>
+                    </div>
+                </li>
+            </ul>
         </section>
 
         <section>
             <h2>程式設計</h2>
-            <p>描述演算法、使用的資料結構、需要注意的細節或改良之處。</p>
+            <ul>
+                <li>
+                    <h3>資料結構</h3>
+                    <ul class="nested-list">
+                        <strong style="font-size: 1.2em;">Point</strong>
+                        <li>
+                            <code style="font-size: 1.1em;">
+                                double x, y; //紀錄點座標<br>
+                                bool operator==(const Point& other) // overload 等於判斷<br>
+                                Point& operator=(const Point& other) // overload 指派<br>
+                                bool operator&lt;(const Point& other) // overload 小於判斷<br>
+                                bool operator!=(const Point& other) // overload 不等於判斷<br>
+                            </code>
+                        </li>
+                        <strong style="font-size: 1.2em;">Edge</strong>
+                        <li>
+                            <code style="font-size: 1.1em;">
+                                Point Start; // 線起點座標<br>
+                                Point End; // 線終點座標<br>
+                                Point A; // 做中垂線的點 A 座標<br>
+                                Point B; // 做中垂線的點 B 座標<br>
+                            </code>
+                        </li>
+                        <strong style="font-size: 1.2em;">Point / Edge vector</strong>
+                        <li>
+                            <code style="font-size: 1.1em;">
+                                vector&lt;Edge&gt; mid_edge; // 紀錄HyperPlane的Edge<br>
+                                vector&lt;Edge&gt; RightEdge; // 紀錄右邊的Edge<br>
+                                vector&lt;Edge&gt; LeftEdge; // 紀錄左邊的Edge<br>
+                                vector&lt;Edge&gt; voronoi; // 紀錄合併後的Edge<br>
+                                vector&lt;Point&gt; RightConvexhull; // 紀錄右邊的凸包<br>
+                                vector&lt;Point&gt; LeftConvexhull; // 紀錄左邊的凸包<br>
+                            </code>
+                        </li>
+                    </ul>
+                <li>
+                    <h3>三個點以下</h3>
+                    <ul class="nested-list">
+                        <strong style="font-size: 1.2em;">兩點</strong>
+                        <li>
+                            先找出兩點的中點，再找出中垂線
+                        </li>
+                        <strong style="font-size: 1.2em;">三點</strong>
+                        <li>
+                            <p>找出三點的外心，再以外心為起點，往外畫出三條垂直平分線</p>
+                            <p>直角、銳角、鈍角的外心位置不同，因此在畫線時需分開處理</p>
+                        </li>
+                        <div class="test-results">
+                            <div class="image-container">
+                                <img src="image/13.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖13&emsp;兩點的垂直平分線</p>
+                            </div>
+                            <div class="image-container">
+                                <img src="image/14.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖14&emsp;三點的垂直平分線</p>
+                            </div>
+                        </div>
+                    </ul>
+                </li>
+                <li>
+                    <h3>超過三個點</h3>
+                    <ul class="nested-list">
+                        <strong style="font-size: 1.2em;">流程</strong>
+                        <p>Sort：將點依照 x 座標排序，若 x 座標相同則依照 y 座標排序</p>
+                        <p>Divide：將點分成左右兩邊，再遞迴處理左右兩邊的點</p>
+                        <p>如果： 點數量 <= 3，則直接回傳垂直平分線</p>
+                                <p>否則： Merge(將左右兩邊的結果合併)</p>
+                                <strong style="font-size: 1.2em;">虛擬碼</strong><br>
+                                <li>
+                                    <code style="font-size: 1.1em;">
+                                <pre>
+voronoi() {
+    if(點數量 == 1)
+        return;
+    else if(點數量 == 2)
+        return 兩點的垂直平分線;
+    else if(點數量 == 3)
+        return 三點的垂直平分線;
+    else {
+        L_Point = voronoi(L, M); // 左邊的點
+        R_Point = voronoi(M, R); // 右邊的點
+        return Merge(L_Point, R_Point);
+    }
+}                               </pre>
+                            </code>
+                                </li>
+                                <strong style="font-size: 1.2em;">合併(Merge)</strong><br>
+                                <p>找出左右兩邊構成的上切線，以此出發</p>
+                                <p>途中撞到左右 Voronoi diagram ，就改變行進方向</p>
+                                <p>清除多餘的 Voronoi diagram</p>
+                                <li>
+                                    <p>Edge的起終點皆在Hyperplane的同一側(如：右側Edge的起終點皆在Hyperplane右側)，則不動作</p>
+                                    <p>Edge的起終點皆在Hyperplane的另一側(如：右側Edge的起終點其一在Hyperplane的左側)，則刪除</p>
+                                    <p>Edge的起終點在Hyperplane的兩側，則將另一側的點更改為相交位置</p>
+                                </li>
+                                <div class="test-results">
+                                    <div class="image-container">
+                                        <img src="image/15.png" alt="測試結果圖片1">
+                                        <p class="image-caption">圖15&emsp;合併之前</p>
+                                    </div>
+                                </div>
+                                <div class="test-results">
+                                    <div class="image-container">
+                                        <img src="image/16.png" alt="測試結果圖片2">
+                                        <p class="image-caption">圖16&emsp;合併過程</p>
+                                    </div>
+                                </div>
+                    </ul>
+                <li>
+                    <h3>Convex Hull</h3>
+                    <ul class="nested-list">
+                        <strong style="font-size: 1.2em;">透過 Voronoi diagram 尋找</strong><strong
+                            style="font-size: 1em;">(PPT. 4-37)</strong>
+                        <p>After a Voronoi diagram is constructed, a convex hull can by found in O(n) time.</p>
+                        <p>若該 Edge 往外無限延伸，則組成該 Edge 的A、B點為 Convex Hull 的點</p>
+                        <div class="test-results">
+                            <div class="image-container">
+                                <img src="image/17.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖17&emsp;綠色 Edge 的A、B點為Convex Hull的點</p>
+                            </div>
+                        </div>
+                    </ul>
+                </li>
+                </li>
         </section>
 
         <section>
             <h2>軟體測試與實驗結果</h2>
             <ul>
-                <li>測試環境：硬體系統、作業系統、編譯器名稱及版本</li>
-                <li>測試數據</li>
-                <li>範例數據及極限數據</li>
-                <li>無法執行之情況及解決方式</li>
-                <li>測試輸入檔與輸出檔</li>
+                <li>
+                    <h3>執行環境</h3>
+                </li>
+                <li>
+                    <h3>實驗結果</h3>
+                    <ul class="nested-list">
+                        <strong style="font-size: 1.2em;">合併過程</strong>
+                        <div class="test-results">
+                            <div class="image-container">
+                                <img src="image/21.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖18：2點與2點合併</p>
+                            </div>
+                            <div class="image-container">
+                                <img src="image/22.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖19：2點與3點合併</p>
+                            </div>
+                        </div>
+                        <div class="test-results">
+                            <div class="image-container">
+                                <img src="image/23.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖20：4點與5點合併</p>
+                            </div>
+                            <div class="image-container">
+                                <img src="image/24.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖21：合併結果</p>
+                            </div>
+                        </div>
+                        <strong style="font-size: 1.2em;">3 點以下</strong>
+                        <div class="test-results">
+                            <div class="image-container">
+                                <img src="image/21.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖18：2點與2點合併</p>
+                            </div>
+                            <div class="image-container">
+                                <img src="image/22.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖19：2點與3點合併</p>
+                            </div>
+                        </div>
+                        <strong style="font-size: 1.2em;">4 ~ 6 點</strong>
+                        <div class="test-results">
+                            <div class="image-container">
+                                <img src="image/21.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖18：2點與2點合併</p>
+                            </div>
+                            <div class="image-container">
+                                <img src="image/22.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖19：2點與3點合併</p>
+                            </div>
+                        </div>
+                        <strong style="font-size: 1.2em;">7 ~ 9 點</strong>
+                        <div class="test-results">
+                            <div class="image-container">
+                                <img src="image/21.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖18：2點與2點合併</p>
+                            </div>
+                            <div class="image-container">
+                                <img src="image/22.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖19：2點與3點合併</p>
+                            </div>
+                        </div>
+                        <strong style="font-size: 1.2em;">10 點以上</strong>
+                        <div class="test-results">
+                            <div class="image-container">
+                                <img src="image/21.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖18：2點與2點合併</p>
+                            </div>
+                            <div class="image-container">
+                                <img src="image/22.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖19：2點與3點合併</p>
+                            </div>
+                        </div>
+                    </ul>
+                </li>
             </ul>
 
-            <!-- 圖片與描述部分 -->
-            <div class="test-results">
-                <div class="image-container">
-                    <img src="image/1.png" alt="測試結果圖片1">
-                    <p class="image-caption">圖1：測試環境的硬體規格示意圖</p>
-                </div>
-                <div class="image-container">
-                    <img src="image/2.png" alt="測試結果圖片2">
-                    <p class="image-caption">圖2：系統運行時的測試數據圖表</p>
-                </div>
-            </div>
         </section>
 
         <section>
@@ -113,10 +387,17 @@ E 150 150 600 150</pre>
 
         <section>
             <h2>附錄</h2>
+            <h3>相關檔案</h3>
             <ul>
-                <li><a href="assets/source_code.zip" download>程式原始碼合併檔</a></li>
-                <li><a href="assets/input_sample.txt" download>測試輸入檔</a></li>
-                <li><a href="assets/output_sample.txt" download>測試輸出檔</a></li>
+                <li><a href="assets/voronoi.cpp" download>C++ 程式碼 (只有計算，沒有GUI)</a></li>
+                <li><a href="assets/voronoi.7z" download>完整程式碼 (7z壓縮檔)</a></li>
+                <li><a href="assets/input.txt" download>測試輸入檔 (20筆測資，含註解)</a></li>
+                <li><a href="assets/output.txt" download>測試輸出檔</a></li>
+            </ul>
+            <h3>相關連結</h3>
+            <ul>
+                <li><a href="https://web.ntnu.edu.tw/~algo/Neighbor.html" download>Voronoi diagram-演算法筆記</a></li>
+                <li><a href="https://par.cse.nsysu.edu.tw/~cbyang/course/algo/algonote/algo4.ppt" download>Chap 4. The Divide-and-Conquer Strategy</a></li>
             </ul>
         </section>
     </main>
