@@ -239,7 +239,7 @@ E 150 150 600 150</pre>
                         <strong style="font-size: 1.2em;">流程</strong>
                         <p>Sort：將點依照 x 座標排序，若 x 座標相同則依照 y 座標排序</p>
                         <p>Divide：將點分成左右兩邊，再遞迴處理左右兩邊的點</p>
-                        <p>如果： 點數量 <= 3，則直接回傳垂直平分線</p>
+                        <p>如果： 點數量 &lt;= 3，則直接回傳垂直平分線</p>
                                 <p>否則： Merge(將左右兩邊的結果合併)</p>
                                 <strong style="font-size: 1.2em;">虛擬碼</strong><br>
                                 <li>
@@ -305,6 +305,19 @@ voronoi() {
             <ul>
                 <li>
                     <h3>執行環境</h3>
+                    <ul class="nested-list">
+                        <ul class="nested-list">
+                            <li>作業系統：Windows 11 專業版 22H2</li>
+                            <li>編譯器：g++ 14.2.0 / Python 3.12.2</li>
+                            <li>硬體配置：R7 3700x / DDR4 3600MHz 8G*4 / RX6800XT</li>
+                        </ul>
+                        <div class="test-results">
+                            <div class="image-container">
+                                <img src="image/18.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖18&emsp;執行環境</p>
+                            </div>
+                        </div>
+                    </ul>
                 </li>
                 <li>
                     <h3>實驗結果</h3>
@@ -313,65 +326,65 @@ voronoi() {
                         <div class="test-results">
                             <div class="image-container">
                                 <img src="image/21.png" alt="測試結果圖片1">
-                                <p class="image-caption">圖18：2點與2點合併</p>
+                                <p class="image-caption">圖19&emsp;2點與2點合併</p>
                             </div>
                             <div class="image-container">
                                 <img src="image/22.png" alt="測試結果圖片2">
-                                <p class="image-caption">圖19：2點與3點合併</p>
+                                <p class="image-caption">圖20&emsp;2點與3點合併</p>
                             </div>
                         </div>
                         <div class="test-results">
                             <div class="image-container">
                                 <img src="image/23.png" alt="測試結果圖片1">
-                                <p class="image-caption">圖20：4點與5點合併</p>
+                                <p class="image-caption">圖21&emsp;4點與5點合併</p>
                             </div>
                             <div class="image-container">
                                 <img src="image/24.png" alt="測試結果圖片2">
-                                <p class="image-caption">圖21：合併結果</p>
+                                <p class="image-caption">圖22&emsp;合併結果</p>
                             </div>
                         </div>
                         <strong style="font-size: 1.2em;">3 點以下</strong>
                         <div class="test-results">
                             <div class="image-container">
-                                <img src="image/21.png" alt="測試結果圖片1">
-                                <p class="image-caption">圖18：2點與2點合併</p>
+                                <img src="image/25.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖23&emsp;直角三角形</p>
                             </div>
                             <div class="image-container">
-                                <img src="image/22.png" alt="測試結果圖片2">
-                                <p class="image-caption">圖19：2點與3點合併</p>
+                                <img src="image/26.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖24&emsp;三點平行</p>
                             </div>
                         </div>
                         <strong style="font-size: 1.2em;">4 ~ 6 點</strong>
                         <div class="test-results">
                             <div class="image-container">
-                                <img src="image/21.png" alt="測試結果圖片1">
-                                <p class="image-caption">圖18：2點與2點合併</p>
+                                <img src="image/27.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖25&emsp;正方形 (水平+垂直)</p>
                             </div>
                             <div class="image-container">
-                                <img src="image/22.png" alt="測試結果圖片2">
-                                <p class="image-caption">圖19：2點與3點合併</p>
+                                <img src="image/28.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖26&emsp;3點水平、2點垂直</p>
                             </div>
                         </div>
                         <strong style="font-size: 1.2em;">7 ~ 9 點</strong>
                         <div class="test-results">
                             <div class="image-container">
-                                <img src="image/21.png" alt="測試結果圖片1">
-                                <p class="image-caption">圖18：2點與2點合併</p>
+                                <img src="image/29.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖27&emsp;隨機 7 點</p>
                             </div>
                             <div class="image-container">
-                                <img src="image/22.png" alt="測試結果圖片2">
-                                <p class="image-caption">圖19：2點與3點合併</p>
+                                <img src="image/30.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖28&emsp;隨機 8 點</p>
                             </div>
                         </div>
                         <strong style="font-size: 1.2em;">10 點以上</strong>
                         <div class="test-results">
                             <div class="image-container">
-                                <img src="image/21.png" alt="測試結果圖片1">
-                                <p class="image-caption">圖18：2點與2點合併</p>
+                                <img src="image/31.png" alt="測試結果圖片1">
+                                <p class="image-caption">圖29&emsp;隨機 12 點</p>
                             </div>
                             <div class="image-container">
-                                <img src="image/22.png" alt="測試結果圖片2">
-                                <p class="image-caption">圖19：2點與3點合併</p>
+                                <img src="image/32.png" alt="測試結果圖片2">
+                                <p class="image-caption">圖30&emsp;隨機 15 點</p>
                             </div>
                         </div>
                     </ul>
@@ -382,7 +395,29 @@ voronoi() {
 
         <section>
             <h2>結論與心得</h2>
-            <p>說明所得結論、可以改良之處與心得等。</p>
+            <li>
+                <h3>初測</h3>
+                <ul class="nested-list">
+                    <p>初測的內容較簡單，只有 1~3 個點，因此只需要直接計算就好。</p>
+                    <p>較複雜的部份為三點時的處理，除了要找外心，還要判斷直角、銳角、鈍角的情況。</p>
+                    <p>而在此階段還未使用到 Divide-and-Conquer，因此很容易忽略資料結構與演算法的設計，導致後續撰寫困難。</p>
+                    <p>為了使 C++ 和 Python 打包成一個檔案，也讓我吃了不少苦頭。</p>
+                </ul>
+                <h3>後測</h3>
+                <ul class="nested-list">
+                    <p>如果程式只需要divide和merge一次，則狀況較單純，找到上切線後一直往下找即可</p>
+                    <p>需注意的部分為左右的Edge與Hyperplane相交的位置相同。</p>
+                    <p>當點數量超過6個時，狀況就變得極為複雜，有許多特例需要判斷和處理</p>
+                    <p>只要有一步做錯，就會產生蝴蝶效應，而使其後續越錯越多。</p>
+                    <p>因初測時未考慮後續的規劃，經常寫到一半才發現缺少某些資料或資料結構設計不佳，為此也付出了慘痛的代價(重寫4、5次)。</p>
+                </ul>
+                <h3>結論 / 心得</h3>
+                <ul class="nested-list">
+                    <p>在寫程式之前，需要詳細規劃每一個步驟，避免後續的困難。</p>
+                    <p>發現程式碼有缺漏或方向不對時，有些時候砍掉重寫會比Debug或彌補過錯來的快。</p>
+                    <p>當merge的過程出現錯誤時，很難馬上找到問題點，必須要逐行註解慢慢排除，這個過程也是十分煎熬。</p>
+                </ul>
+            </li>
         </section>
 
         <section>
@@ -397,7 +432,8 @@ voronoi() {
             <h3>相關連結</h3>
             <ul>
                 <li><a href="https://web.ntnu.edu.tw/~algo/Neighbor.html" download>Voronoi diagram-演算法筆記</a></li>
-                <li><a href="https://par.cse.nsysu.edu.tw/~cbyang/course/algo/algonote/algo4.ppt" download>Chap 4. The Divide-and-Conquer Strategy</a></li>
+                <li><a href="https://par.cse.nsysu.edu.tw/~cbyang/course/algo/algonote/algo4.ppt" download>Chap 4. The
+                        Divide-and-Conquer Strategy</a></li>
             </ul>
         </section>
     </main>
